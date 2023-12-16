@@ -1,9 +1,7 @@
 from typing import List, Dict
 
-
-
 class LLaMAChat:
-    """LLaMA Dialog
+    """LLaMAChat
 
     Args:
         personality (str): LLaMA personality (a description of what personality model has)
