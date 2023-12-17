@@ -116,7 +116,7 @@ class LLM:
         
         chat = create_chat(self.model_name, self.personality, self.examples)
         
-        print("************ Mistral Chat ('q' to quit, 'r' to reset) ************\n")
+        print("************ LLM Chat ('q' to quit, 'r' to reset) ************\n")
         
         while True:        
             question = input("\nUser: ")
