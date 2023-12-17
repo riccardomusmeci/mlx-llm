@@ -1,5 +1,8 @@
 # mlx-llm
-LLM applications running on Apple Silicon thanks to [Apple MLX framework](https://github.com/ml-explore/mlx).
+LLM applications running on Apple Silicon in real-time thanks to [Apple MLX framework](https://github.com/ml-explore/mlx).
+
+[![Watch the video](https://img.youtube.com/vi/vB7tk6W6VIw/hqdefault.jpg)](https://www.youtube.com/embed/vB7tk6W6VIw)
+
 
 ## **How to install 🔨**
 ```
@@ -9,30 +12,36 @@ pip install .
 ```
 
 ## **LLM Chat 📱**
-mlx-llm comes with tools to easily run your LLM chats on Apple Silicon.
+mlx-llm comes with tools to easily run your LLM chat on Apple Silicon.
 
-### **LLaMA v2 🦙**
-Before running LLaMA v2, you need to download the model and the tokenizer from [here](https://ai.meta.com/resources/models-and-libraries/llama-downloads/). 
+### **Supported models**
 
-> ⚠️ **Warning:** Currently only LLaMA2-7B is supported.
+| Model Family | Weights | Supported Models |
+|----------|----------|----------|
+|   LLaMA-2  |  [link](ttps://ai.meta.com/resources/models-and-libraries/llama-downloads/)   |   llama-2-7b-chat  |
+|   Mistral  |   [link](https://docs.mistral.ai/models)  |   Mistral-7B-v0.2-Instruct  |
 
-Then you have to convert the model weights (PyTorch) to Apple MLX format with the following command:
+> ⚠️ **Warning:** Currently, correspoding weights from 🤗 are not supported. This because 🤗 weights have different names and shapes. You need to download the weights from the links above.
+
+
+### **How to run**
+Once downloaded the weights, you need to convert the tokenizer to Apple MLX format (.npz file) with the following command:
 ```python
-from mlx_llm.model import LLaMA
+from mlx_llm.utils import weights_to_npz
 
-LLaMA.convert(
-    ckpt_path="path/to/llama.ckpt",
-    output_path="path/to/llama.npz",
+# also supported .safetensors files
+weights_to_npz(
+    ckpt_paths=[
+        "path/to/model_1.bin", # if model weights are split in multiple files
+        "path/to/model_2.bin",
+    ]
+    output_path="path/to/model.npz",
 )
 ```
-> ⚠️ **Warning:** Currently only single file weights are supported. If you have a multi-file checkpoint, you can use the following command to merge them:
-> ```bash
->  cat llama.ckpt.* > llama.ckpt
-> ```
 
 Finally, you can run the chat by specifying a personality and some examples of user-model interaction (this is mandatory to have a good chat experience):
 ```python
-from mlx_llm.model import LLaMA
+from mlx_llm.llm import LLM
 
 personality = "You're a salesman and beet farmer know as Dwight K Schrute from the TV show The Office. Dwight replies just as he would in the show. You always reply as Dwight would reply. If you don't know the answer to a question, please don't share false information."
 
@@ -45,23 +54,39 @@ examples = [
     {
         "user": "What is your job?",
         "model": "Assistant Regional Manager. Sorry, Assistant to the Regional Manager.",
-    },
-    {
-        "user": "What is your favorite color?",
-        "model": "Brown. Beets are brown. Bears are brown. Bears eat beets. Bears, beets, Battlestar Galactica.",
     }
 ]
 
-llama = LLaMA.build(
-    model_name="llama-7B",
+llm = LLM.build(
+    model_name="llama-2-7B-chat",
     weights_path="path/to/llama.npz",
     tokenizer_path="path/to/llama.tokenizer",
     personality=personality,
     examples=examples,
 )
     
-llama.chat(max_tokens=500)
+llm.chat(max_tokens=500)
 ```
+
+## **Demo 🧑‍💻**
+Within *demo* folder you can find a demo of LLM chat running on Apple Silicon in real-time by specifying a pre-loaded personality.
+
+Supported personalities:
+- Dwight K Schrute (The Office)
+- Michael Scott (The Office)
+- Kanye West (Rapper)
+
+To run the demo, you need to install mlx-llm, download and convert the weights as explained above and then run:
+```
+python demo/llm_chat.py \
+    --personality dwight|michael|kanye
+    --model llama-2-7b-chat|Mistral-7B-v0.2-instruct
+    --weights path/to/weights.npz
+    --tokenizer path/to/tokenizer.model
+    --max_tokens 500
+```
+
+python demo/llm_chat.py --personality michael --model llama-2-7b-chat --weights /Users/riccardomusmeci/Developer/data/github/mlx_llm/weights/llama-2-7b-chat/weights.npz --tokenizer /Users/riccardomusmeci/Developer/data/github/mlx_llm/weights/llama-2-7b-chat/tokenizer.model --max_tokens 500
 
 ## 📧 Contact
 
