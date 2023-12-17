@@ -86,8 +86,6 @@ python demo/llm_chat.py \
     --max_tokens 500
 ```
 
-python demo/llm_chat.py --personality michael --model llama-2-7b-chat --weights /Users/riccardomusmeci/Developer/data/github/mlx_llm/weights/llama-2-7b-chat/weights.npz --tokenizer /Users/riccardomusmeci/Developer/data/github/mlx_llm/weights/llama-2-7b-chat/tokenizer.model --max_tokens 500
-
 ## 📧 Contact
 
 If you have any questions, please email `riccardomusmeci92@gmail.com`
