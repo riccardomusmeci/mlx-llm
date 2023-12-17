@@ -1,10 +1,11 @@
 # mlx-llm
 LLM applications running on Apple Silicon in real-time thanks to [Apple MLX framework](https://github.com/ml-explore/mlx).
 
-Whatch the video below to see LLM chat running on Apple Silicon in real-time.
+![Alt Text](static/mlx-llm-demo.gif)
 
-[<img src="https://img.youtube.com/vi/vB7tk6W6VIw/hqdefault.jpg" width="1106" height="665"
-/>](https://www.youtube.com/watch?v=vB7tk6W6VIw)
+
+Here's also a [Youtube Video](https://www.youtube.com/watch?v=vB7tk6W6VIw).
+
 
 ## **How to install 🔨**
 ```
