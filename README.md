@@ -18,10 +18,10 @@ mlx-llm comes with tools to easily run your LLM chat on Apple Silicon.
 
 | Model Family | Weights | Supported Models |
 |----------|----------|----------|
-|   LLaMA-2  |  [link](ttps://ai.meta.com/resources/models-and-libraries/llama-downloads/)   |   llama-2-7b-chat  |
+|   LLaMA-2  |  [link](https://ai.meta.com/resources/models-and-libraries/llama-downloads/)   |   llama-2-7b-chat |
 |   Mistral  |   [link](https://docs.mistral.ai/models)  |   Mistral-7B-v0.2-Instruct  |
 
-> ⚠️ **Warning:** Currently, correspoding weights from 🤗 are not supported. This because 🤗 weights have different names and shapes. You need to download the weights from the links above.
+> ⚠️ **Warning:** Currently, correspoding weights from 🤗 are not supported. This because 🤗 weights have different names and shapes. You need to download the weights from the links above. 
 
 
 ### **How to run**
