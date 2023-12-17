@@ -78,6 +78,7 @@ Supported personalities:
 - Dwight K Schrute (The Office)
 - Michael Scott (The Office)
 - Kanye West (Rapper)
+- Astro (An astrophysicist that likes to keypoints)
 
 To run the demo, you need to install mlx-llm, download and convert the weights as explained above and then run:
 ```
