@@ -178,7 +178,6 @@ exclude = [
   'lib',
   '.cicd',
   "tests",
-  "src/mlx_llm/model/factory/daclip_vit"
 ]
 # enables PEP 420 style namespace packages.
 namespace_packages = true
