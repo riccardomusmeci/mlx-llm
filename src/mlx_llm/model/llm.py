@@ -16,8 +16,24 @@ from .config import CONFIG
 from ..chat import create_chat
 
 class LLM:
-    
-    def __init__(self, model, tokenizer, personality: str = "", examples: List[Dict[str, str]] = [], model_name: str = ""):
+    """LLM class
+
+    Args:
+        model (Transformer): a Transformer model
+        tokenizer: SentencePieceProcessor tokenizer
+        personality (str, optional): model personality (a description of what personality model has). Defaults to "".
+        examples (List[Dict[str, str]], optional): a list of examples of dialog [{"user": ..., "model": ...}]. Defaults to [].
+        model_name (str, optional): model name. Defaults to "".
+    """
+    def __init__(
+        self, 
+        model: Transformer, 
+        tokenizer, 
+        personality: str = "", 
+        examples: List[Dict[str, str]] = [], 
+        model_name: str = ""
+    ):
+        
         self.model = model
         self.tokenizer = tokenizer
         self.personality = personality
@@ -33,7 +49,7 @@ class LLM:
         examples: List[Dict[str, str]] = [],
         no_rope: bool = True
     ):
-        """Builds a Mistral model from a given model name, weights path and tokenizer path.
+        """Build an LLM model from a given model name, weights path and tokenizer path.
 
         Args:
             model_name (str): Mistral model name
@@ -41,10 +57,9 @@ class LLM:
             tokenizer_path (Union[str, Path]): path to tokenizer
             personality (str, optional): Mistral personality for chat mode. Defaults to "".
             examples (List[Dict[str, str]], optional): Mistral examples (list of {"user": ..., "model": ...} examples) for chat mode. Defaults to [].
-            no_rope (bool, optional): whether to load rope weights or not. Defaults to True.
         
         Returns:
-            Mistral: Mistral class instance with model and tokenizer
+            LLM: LLM class instance with model and tokenizer
         """
         
         assert model_name in CONFIG.keys(), f"Model name {model_name} not found in CONFIG. Available models are {list(CONFIG.keys())}"
@@ -54,29 +69,11 @@ class LLM:
         print(f"************ Building LLM ({model_name}) ************")
             
         with Timing("> Loading weights"):
-            
-            # params = CONFIG[model_name]
-            # model = Transformer(**params)
-            
             model = Transformer(**CONFIG[model_name])
             weights = mx.load(weights_path)
             weights = tree_unflatten(list(weights.items()))
             weights = tree_map(lambda p: p.astype(mx.float16), weights)
             model.update(weights)
-            
-            weights = mx.load(weights_path)
-            
-            # rope_key = None
-            # for k, v in weights.items():
-            #     if "rope" in k: rope_key = k
-            
-            # if rope_key is not None and no_rope: 
-            #     del weights[rope_key]
-            
-            # weights = tree_unflatten(list(weights.items()))
-            # weights = tree_map(lambda p: p.astype(mx.float16), weights)
-            # model.update(weights)
-            # mx.eval(model.parameters()) 
             
         with Timing("> Loading tokenizer"):
             tokenizer = SentencePieceProcessor(tokenizer_path)
@@ -87,7 +84,7 @@ class LLM:
     
 
     def generate(self, x: mx.array, temp: Optional[float] = 0.0):
-        """Generates tokens from a given input
+        """Generate tokens from a given input
 
         Args:
             x (mx.array): input tokens
@@ -110,7 +107,7 @@ class LLM:
 
     
     def chat(self, temp: float = .1,  max_tokens: int = 1000):
-        """Chat with Mistral model
+        """Chat with model
 
         Args:
             temp (float, optional): model temperature. Defaults to .1.
