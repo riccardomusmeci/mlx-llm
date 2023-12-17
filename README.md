@@ -22,7 +22,7 @@ mlx-llm comes with tools to easily run your LLM chat on Apple Silicon.
 | Model Family | Weights | Supported Models |
 |----------|----------|----------|
 |   LLaMA-2  |  [link](https://ai.meta.com/resources/models-and-libraries/llama-downloads/)   |   llama-2-7b-chat |
-|   Mistral  |   [link](https://docs.mistral.ai/models)  |   Mistral-7B-v0.2-Instruct  |
+|   Mistral  |  [link](https://docs.mistral.ai/models)  |   Mistral-7B-v0.2-Instruct  |
 
 > ⚠️ **Warning:** Currently, correspoding weights from 🤗 are not supported. This because 🤗 weights have different names and shapes. You need to download the weights from the links above. 
 
@@ -83,7 +83,7 @@ Supported personalities:
 To run the demo, you need to install mlx-llm, download and convert the weights as explained above and then run:
 ```
 python demo/llm_chat.py \
-    --personality dwight|michael|kanye
+    --personality dwight|michael|kanye|astro
     --model llama-2-7b-chat|Mistral-7B-v0.2-instruct
     --weights path/to/weights.npz
     --tokenizer path/to/tokenizer.model
