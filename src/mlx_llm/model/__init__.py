@@ -1,1 +1,1 @@
-from .llama import LLaMA
+from .llm import LLM
