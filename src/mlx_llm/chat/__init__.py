@@ -19,11 +19,11 @@ def create_chat(
         Union[MistralChat, OpenHermesChat, LLaMAChat]: chat class
     """
     
-    if "mistral" in model_name.lower():
-        return MistralChat(personality, examples)
-    
     if "openhermes" in model_name.lower():
         return OpenHermesChat(personality, examples)
+    
+    if "mistral" in model_name.lower():
+        return MistralChat(personality, examples)
     
     if "llama" in model_name.lower():
         return LLaMAChat(personality, examples)
