@@ -25,6 +25,12 @@ mlx-llm comes with tools to easily run your LLM chat on Apple Silicon.
 |   Mistral  |  [link](https://docs.mistral.ai/models)  |   Mistral-7B-v0.2-Instruct  |
 |   OpenHermes-Mistral  |  [link](https://huggingface.co/teknium/OpenHermes-2.5-Mistral-7B/tree/main)  |   OpenHermes-2.5-Mistral-7B  |
 
+To list all available models:
+```python
+from mlx_llm.model import list_models
+
+print(list_models())
+```
 
 ### **How to run**
 Once downloaded the weights, you need to convert the tokenizer to Apple MLX format (.npz file) with the following command:
