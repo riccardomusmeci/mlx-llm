@@ -21,24 +21,34 @@ mlx-llm comes with tools to easily run your LLM chat on Apple Silicon.
 
 | Model Family | Weights | Supported Models |
 |----------|----------|----------|
-|   LLaMA-2  |  [link](https://ai.meta.com/resources/models-and-libraries/llama-downloads/)   |   llama-2-7b-chat |
+|   LLaMA-2  |  [link](https://ai.meta.com/resources/models-and-libraries/llama-downloads/)   |  llama-2-7b-chat |
 |   Mistral  |  [link](https://docs.mistral.ai/models)  |   Mistral-7B-v0.2-Instruct  |
-
-> ⚠️ **Warning:** Currently, correspoding weights from 🤗 are not supported. This because 🤗 weights have different names and shapes. You need to download the weights from the links above. 
+|   OpenHermes-Mistral  |  [link](https://huggingface.co/teknium/OpenHermes-2.5-Mistral-7B/tree/main)  |   OpenHermes-2.5-Mistral-7B  |
 
 
 ### **How to run**
 Once downloaded the weights, you need to convert the tokenizer to Apple MLX format (.npz file) with the following command:
 ```python
-from mlx_llm.utils import weights_to_npz
+from mlx_llm.utils import weights_to_npz, hf_to_npz
 
-# also supported .safetensors files
+# if weights are original ones (from raw sources)
 weights_to_npz(
     ckpt_paths=[
-        "path/to/model_1.bin", # if model weights are split in multiple files
+        "path/to/model_1.bin", # also support safetensor
         "path/to/model_2.bin",
     ]
     output_path="path/to/model.npz",
+)
+
+# if weights are from HuggingFace (e.g. OpenHermes-Mistral)
+hf_to_npz(
+    model_name=ckpt_paths=[
+        "path/to/model_1.bin", # also support safetensor
+        "path/to/model_2.bin",
+    ]
+    output_path="path/to/model.npz",
+    n_heads=32,
+    n_kv_heads=8
 )
 ```
 

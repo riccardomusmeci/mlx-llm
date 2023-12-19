@@ -139,7 +139,13 @@ class LLM:
                     break
                 mx.eval(tokens)
                 token_list = [t.item() for t in tokens]
-                answer = self.tokenizer.decode(token_list)
+                # tokenizer sometimes fails to decode - this fixes it (it's not fancy but it works)
+                try:
+                    answer = self.tokenizer.decode(token_list)
+                except:
+                    if token == self.tokenizer.vocab_size(): 
+                        tokens[-1] = [mx.array(self.tokenizer.eos_id())]
+                        token_list[-1] = self.tokenizer.eos_id()
                 # if answer is still prompt, continue
                 status = chat.model_status(answer)
                 if status == 0: continue
