@@ -5,12 +5,12 @@ from pathlib import Path
 from typing import Union, List
 from tqdm import tqdm
 import numpy as np
+from safetensors import safe_open
 
 def weights_to_npz(
     ckpt_paths: List[Union[str, Path]],
     output_path: Union[str, Path],
     show_kv: bool = False,
-    replace: str = "model.",
 ):
     """Convert a checkpoint of PyTorch or safetensors to a MLX checkpoint (npz file).
 
@@ -46,3 +46,8 @@ def weights_to_npz(
             output_path,
             **state_dict
         )
+        
+def hf_to_npz(
+    
+):
+    pass
