@@ -22,7 +22,7 @@ mlx-llm comes with tools to easily run your LLM chat on Apple Silicon.
 | Model Family | Weights | Supported Models |
 |----------|----------|----------|
 |   LLaMA-2  |  [link](https://ai.meta.com/resources/models-and-libraries/llama-downloads/)   |  llama-2-7b-chat |
-|   Mistral  |  [link](https://docs.mistral.ai/models)  |   Mistral-7B-v0.2-Instruct  |
+|   Mistral  |  [link](https://docs.mistral.ai/models)  |   Mistral-7B-Instruct-v0.1, Mistral-7B-Instruct-v0.2  |
 |   OpenHermes-Mistral  |  [link](https://huggingface.co/teknium/OpenHermes-2.5-Mistral-7B/tree/main)  |   OpenHermes-2.5-Mistral-7B  |
 
 To list all available models:
