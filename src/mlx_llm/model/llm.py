@@ -139,7 +139,7 @@ class LLM:
                     break
                 mx.eval(tokens)
                 token_list = [t.item() for t in tokens]
-                # 
+                # tokenizer sometimes fails to decode - this fixes it (it's not fancy but it works)
                 try:
                     answer = self.tokenizer.decode(token_list)
                 except:
