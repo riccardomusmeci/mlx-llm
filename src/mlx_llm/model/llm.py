@@ -158,9 +158,7 @@ class LLM:
                     break
             mx.eval(tokens)
             answer = self.tokenizer.decode([t.item() for t in tokens])
-            
             chat.add_answer(answer)
             
-        
             
             
