@@ -73,10 +73,6 @@ class Attention(nn.Module):
             values = mx.concatenate([value_cache, values], axis=2)
         else:
             queries = self.rope(queries)
-            # print(queries.shape)
-            # print(keys.shape)
-            # print(self.rope)
-            # quit()
             keys = self.rope(keys)
 
         scores = (queries * self.scale) @ keys.transpose(0, 1, 3, 2)
