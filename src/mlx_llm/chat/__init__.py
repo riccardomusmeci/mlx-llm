@@ -1,13 +1,14 @@
 from .teknium import OpenHermesChat
 from .mistral import MistralChat
 from .llama import LLaMAChat
+from .phi2 import Phi2Chat
 from typing import Union, List, Dict, Optional
 
 def create_chat(
     model_name: str,
     personality: str = "",
     examples: List[Dict[str, str]] = [],
-) -> Union[MistralChat, OpenHermesChat, LLaMAChat]:
+) -> Union[MistralChat, OpenHermesChat, LLaMAChat, Phi2Chat]:
     """Create chat class based on model name
 
     Args:
@@ -27,3 +28,7 @@ def create_chat(
     
     if "llama" in model_name.lower():
         return LLaMAChat(personality, examples)
+    
+    if "phi2" in model_name.lower():
+        return Phi2Chat(personality, examples)
+    
