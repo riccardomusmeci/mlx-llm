@@ -37,7 +37,7 @@ print(list_models())
 ### **How to run**
 Weights from mlx-community in HuggingFace can be used once downloaded, while weights from original sources must be converted into Apple MLX format (.npz). 
 
-Use the snippet below:
+Use the snippet below to convert weights from original source:
 
 ```python
 from mlx_llm.utils import weights_to_npz
