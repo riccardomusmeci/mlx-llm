@@ -40,7 +40,7 @@ def weights_to_npz(
         show_kv (bool, optional): show key and value shape. Defaults to False.
     """
     state_dict = {}
-    for ckpt_path in smart_load(ckpt_paths):
+    for state in smart_load(ckpt_paths):
         for k, w in tqdm(state.items(), total=len(state.keys()), desc="Converting.."):
             if show_kv: print(k, w.shape)
             w = w.to(torch.float16).numpy()
