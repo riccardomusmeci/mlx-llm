@@ -71,7 +71,7 @@ examples = [
 ]
 
 llm = LLM.build(
-    model_name="Llama-2-7B-chat",
+    model_name="LLaMA-2-7B-chat",
     weights_path="path/to/weights.npz",
     tokenizer_path="path/to/llama.tokenizer",
     personality=personality,
