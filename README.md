@@ -40,7 +40,7 @@ Weights from mlx-community in HuggingFace can be used once downloaded, while wei
 Use the snippet below:
 
 ```python
-from mlx_llm.utils import weights_to_npz, hf_to_npz
+from mlx_llm.utils import weights_to_npz
 
 # if weights are original ones (from raw sources)
 weights_to_npz(
