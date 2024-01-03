@@ -220,7 +220,7 @@ def openhermes_25_mistral_7B() -> Transformer:
         head_dim=128,
         norm_eps=1e-5
     )
-    
+      
 def llama_2_7B_chat() -> Transformer:
     return Transformer(
         dim=4096,

@@ -7,6 +7,7 @@ from .transformer import (
     mistral_7B_instruct_v02
 )
 from typing import Optional, Tuple, Union
+import mlx.nn as nn
 
 FACTORY = {
     "Phi2": phi2,
@@ -26,11 +27,14 @@ def list_models() -> None:
     for model_name in FACTORY:
         print(f"\t- {model_name}")
 
-def create_model(model_name: str):
+def create_model(model_name: str) -> nn.Module:
     """Create a LLM model.
 
     Args:
         model_name (str): model name
+        
+    Returns:
+        nn.Module: a LLM model
 
     Raises:
         ValueError: Unknown model name
@@ -39,3 +43,5 @@ def create_model(model_name: str):
     if model_name not in FACTORY:
         raise ValueError(f"Unknown model name: {model_name}.")
     return FACTORY[model_name]()
+
+
