@@ -7,7 +7,7 @@ class LLaMAChat(Chat):
     Args:
         personality (str): LLaMA personality (a description of what personality model has)
         examples (List[Dict[str, str]]): a list of examples of dialog [{"question": ..., "answer": ...}]
-        end_str (str, optional): end of the model answer. Defaults to "[/INST]".
+        end_str (str, optional): end of the model answer. Defaults to "[INST]".
     """
     
     def __init__(self, personality: str, examples: List[Dict[str, str]], end_str: str = "[INST]"):
@@ -34,7 +34,7 @@ class LLaMAChat(Chat):
 
     @property
     def prompt(self) -> str:
-        """Retunr LLaMA prompt based on this structure
+        """Return LLaMA prompt based on this structure
         [INST] <<SYS>>
         {{ system_prompt }}
         <</SYS>>

@@ -1,4 +1,4 @@
-from .model import Transformer
+# from .model import Transformer
 from typing import Union, List, Dict, Optional
 from pathlib import Path
 import os
@@ -12,8 +12,11 @@ import torch
 import numpy as np
 from tqdm import tqdm
 
-from .config import CONFIG
+from ..model import create_model
+from ..tokenizer import Tokenizer
 from ..chat import create_chat
+
+mx.random.seed(0)
 
 class LLM:
     """LLM class
@@ -27,7 +30,7 @@ class LLM:
     """
     def __init__(
         self, 
-        model: Transformer, 
+        model, 
         tokenizer, 
         personality: str = "", 
         examples: List[Dict[str, str]] = [], 
@@ -39,12 +42,13 @@ class LLM:
         self.personality = personality
         self.examples = examples
         self.model_name = model_name
+        
     
     @staticmethod
     def build(
         model_name: str,
         weights_path: Union[str, Path],
-        tokenizer_path: Union[str, Path],
+        tokenizer: str,
         personality: str = "",
         examples: List[Dict[str, str]] = [],
         no_rope: bool = True
@@ -54,7 +58,7 @@ class LLM:
         Args:
             model_name (str): Mistral model name
             weights_path (Union[str, Path]): path to mlx weights
-            tokenizer_path (Union[str, Path]): path to tokenizer
+            tokenizer (str): path to tokenizer
             personality (str, optional): Mistral personality for chat mode. Defaults to "".
             examples (List[Dict[str, str]], optional): Mistral examples (list of {"user": ..., "model": ...} examples) for chat mode. Defaults to [].
         
@@ -62,22 +66,18 @@ class LLM:
             LLM: LLM class instance with model and tokenizer
         """
         
-        assert model_name in CONFIG.keys(), f"Model name {model_name} not found in CONFIG. Available models are {list(CONFIG.keys())}"
         assert os.path.exists(weights_path), f"Weights path {weights_path} does not exist."
-        assert os.path.exists(tokenizer_path), f"Tokenizer path {tokenizer_path} does not exist."
         
         print(f"************ Building LLM ({model_name}) ************")
-            
+        
+        tokenizer = Tokenizer(tokenizer)
         with Timing("> Loading weights"):
-            model = Transformer(**CONFIG[model_name])
+            model = create_model(model_name)
             weights = mx.load(weights_path)
             weights = tree_unflatten(list(weights.items()))
             weights = tree_map(lambda p: p.astype(mx.float16), weights)
             model.update(weights)
-            
-        with Timing("> Loading tokenizer"):
-            tokenizer = SentencePieceProcessor(tokenizer_path)
-            
+
         print("\n" + "-"*20 + "\n")
     
         return LLM(model, tokenizer, personality, examples, model_name=model_name)
@@ -95,13 +95,12 @@ class LLM:
                 return mx.argmax(logits, axis=-1)
             else:
                 return mx.random.categorical(logits * (1 / temp))
-
         logits, cache = self.model(x[None])
         y = sample(logits[:, -1, :])
         yield y
 
         while True:
-            logits, cache = self.model(y[:, None], cache)
+            logits, cache = self.model(y[:, None], cache=cache)
             y = sample(logits.squeeze(1))
             yield y
 
@@ -128,11 +127,14 @@ class LLM:
             # adding question to dialog and getting prompt to model
             chat.add_question(question)
             prompt = chat.prompt
+            # prompt = question
             
             x = mx.array([self.tokenizer.bos_id()] + self.tokenizer.encode(prompt))
+
             tokens = []
             skip = 0
             print("Model: ", end="", flush=True)
+            
             for token in self.generate(x, temp):
                 tokens.append(token)
                 if len(tokens) >= max_tokens: 
@@ -148,6 +150,7 @@ class LLM:
                         token_list[-1] = self.tokenizer.eos_id()
                 # if answer is still prompt, continue
                 status = chat.model_status(answer)
+
                 if status == 0: continue
                 if status == 1: 
                     skip = len(answer)
@@ -159,6 +162,6 @@ class LLM:
             mx.eval(tokens)
             answer = self.tokenizer.decode([t.item() for t in tokens])
             chat.add_answer(answer)
-            
+
             
             

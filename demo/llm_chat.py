@@ -1,5 +1,5 @@
 import argparse
-from mlx_llm.model import LLM
+from mlx_llm.playground import LLM
 from personality import personalities
   
 def parse_args():
@@ -15,7 +15,7 @@ def parse_args():
     
     parser.add_argument(
       "--model", 
-      default="Mistral-7B-Instruct-v0.1",
+      default="Phi2",
       required=False,
       type=str, 
       help="Model name."
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     llm = LLM.build(
       model_name=args.model,
       weights_path=args.weights,
-      tokenizer_path=args.tokenizer,
+      tokenizer=args.tokenizer,
       personality=personalities[args.personality]["personality"],
       examples=personalities[args.personality]["examples"],
     )

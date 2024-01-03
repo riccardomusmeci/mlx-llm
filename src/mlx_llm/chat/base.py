@@ -64,13 +64,6 @@ class Chat:
         
     @property
     def prompt(self) -> str:
-        """Retunr LLaMA prompt based on this structure
-        [INST] <<SYS>>
-        {{ system_prompt }}
-        <</SYS>>
-
-        {{ user_msg_1 }} [/INST] {{ model_answer_1 }} [INST] {{ user_msg_2 }} [/INST]
-        """
         raise NotImplementedError("prompt property must be implemented in child class")
          
     def reset(self):
@@ -82,13 +75,13 @@ class Chat:
         """Check if dialog is over
 
         Returns:
-            int: -1 if model can keep generating, 0 if model is generating [INST], 1 if model is done generating [INST]
+            int: -1 if model can keep generating, 0 if model is generating self.END_STR, 1 if model is done generating self.END_STR
         """
         for i in range(len(self.END_STR) - 1, 0, -1):
-            # model is generating [INST] -> wait until it finishes but don't print anything
+            # model is generating self.END_STR -> wait until it finishes but don't print anything
             if answer[-i:] == self.END_STR[:i]:
                 return 0
-        # model is done generating [INST] -> saving answer
+        # model is done generating self.END_STR -> saving answer
         if answer[-len(self.END_STR) :] == self.END_STR:
             return 1
         # model can keep generating

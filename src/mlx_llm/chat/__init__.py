@@ -1,13 +1,24 @@
 from .teknium import OpenHermesChat
 from .mistral import MistralChat
 from .llama import LLaMAChat
+from .phi2 import Phi2Chat
+from .tiny_llama import TinyLLaMAChat
 from typing import Union, List, Dict, Optional
+
+FACTORY = {
+    "Phi2": Phi2Chat,
+    "LLaMA-2-7B-chat": LLaMAChat,
+    "Mistral-7B-Instruct-v0.1": MistralChat,
+    "Mistral-7B-Instruct-v0.2": MistralChat,
+    "OpenHermes-2.5-Mistral-7B": OpenHermesChat,
+    "TinyLlama-1.1B-Chat-v0.6": TinyLLaMAChat,
+}
 
 def create_chat(
     model_name: str,
     personality: str = "",
     examples: List[Dict[str, str]] = [],
-) -> Union[MistralChat, OpenHermesChat, LLaMAChat]:
+):
     """Create chat class based on model name
 
     Args:
@@ -16,14 +27,12 @@ def create_chat(
         examples (List[Dict[str, str]], optional): a list of examples of dialog [{"user": ..., "model": ...}]. Defaults to [].
 
     Returns:
-        Union[MistralChat, OpenHermesChat, LLaMAChat]: chat class
+        Chat: chat class
     """
     
-    if "openhermes" in model_name.lower():
-        return OpenHermesChat(personality, examples)
+    assert (
+        model_name in list(FACTORY.keys())
+    ), f"Unknown model chat: {model_name}."
     
-    if "mistral" in model_name.lower():
-        return MistralChat(personality, examples)
+    return FACTORY[model_name](personality, examples)
     
-    if "llama" in model_name.lower():
-        return LLaMAChat(personality, examples)

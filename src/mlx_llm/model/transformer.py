@@ -3,8 +3,6 @@ from typing import Optional, Tuple
 import mlx.core as mx
 import mlx.nn as nn
 
-__all__ = ["Transformer"]
-
 class RMSNorm(nn.Module):
     def __init__(self, dims: int, eps: float = 1e-5):
         super().__init__()
@@ -25,7 +23,8 @@ class Attention(nn.Module):
         dim: int, 
         n_heads: int, 
         n_kv_heads: int, 
-        head_dim: int
+        head_dim: int,
+        rope_traditional: bool = True
     ):
         super().__init__()
 
@@ -41,7 +40,7 @@ class Attention(nn.Module):
         self.wv = nn.Linear(dim, n_kv_heads * head_dim, bias=False)
         self.wo = nn.Linear(n_heads * head_dim, dim, bias=False)
 
-        self.rope = nn.RoPE(dim // n_heads, traditional=True)
+        self.rope = nn.RoPE(dim // n_heads, traditional=rope_traditional)
 
     def __call__(
         self,
@@ -103,7 +102,8 @@ class TransformerBlock(nn.Module):
         n_kv_heads: int, 
         head_dim: int, 
         hidden_dim: int,
-        norm_eps: float
+        norm_eps: float,
+        rope_traditional: bool = True
     ):
         super().__init__()
         self.n_heads = n_heads
@@ -112,7 +112,8 @@ class TransformerBlock(nn.Module):
             dim=dim,
             n_heads=n_heads,
             n_kv_heads=n_kv_heads,
-            head_dim=head_dim
+            head_dim=head_dim,
+            rope_traditional=rope_traditional
         )
         self.feed_forward = FeedForward(dim=dim, hidden_dim=hidden_dim)
         self.attention_norm = RMSNorm(dim, eps=norm_eps)
@@ -141,7 +142,8 @@ class Transformer(nn.Module):
         n_heads: int,
         n_kv_heads: int,
         head_dim: int,
-        norm_eps: float
+        norm_eps: float,
+        rope_traditional: bool = True
     ):
         super().__init__()
         self.vocab_size = vocab_size
@@ -155,7 +157,8 @@ class Transformer(nn.Module):
                 n_kv_heads=n_kv_heads,
                 head_dim=head_dim,
                 hidden_dim=hidden_dim,
-                norm_eps=norm_eps
+                norm_eps=norm_eps,
+                rope_traditional=rope_traditional
             )  for _ in range(n_layers)
         ]
         self.norm = RMSNorm(dim, eps=norm_eps)
@@ -180,3 +183,65 @@ class Transformer(nn.Module):
             h, cache[e] = layer(h, mask, cache[e])
 
         return self.output(self.norm(h)), cache
+    
+    
+def mistral_7B_instruct_v01() -> Transformer:
+    return Transformer(
+        dim=4096,
+        hidden_dim=14336,
+        vocab_size=32000,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=8,
+        head_dim=128,
+        norm_eps=1e-5
+    )
+    
+def mistral_7B_instruct_v02() -> Transformer:
+    return Transformer(
+        dim=4096,
+        hidden_dim=14336,
+        vocab_size=32000,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=8,
+        head_dim=128,
+        norm_eps=1e-5
+    )
+
+def openhermes_25_mistral_7B() -> Transformer:
+    return Transformer(
+        dim=4096,
+        hidden_dim=14336,
+        vocab_size=32002,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=8,
+        head_dim=128,
+        norm_eps=1e-5
+    )
+    
+def llama_2_7B_chat() -> Transformer:
+    return Transformer(
+        dim=4096,
+        hidden_dim=11008,
+        vocab_size=32000,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=32,
+        head_dim=128,
+        norm_eps=1e-5
+    )
+    
+def tiny_llama_chat_v06() -> Transformer:
+    return Transformer(
+        dim=2048,
+        hidden_dim=5632,
+        n_heads=32,
+        n_kv_heads=4,
+        n_layers=22,
+        vocab_size=32000,
+        head_dim=64, # 2048 / 32,
+        norm_eps=1e-5,
+        rope_traditional=False
+    )
