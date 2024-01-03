@@ -94,7 +94,7 @@ To run the demo, you need to install mlx-llm, download and convert the weights a
 ```
 python demo/llm_chat.py \
     --personality dwight|michael|kanye|astro
-    --model llama-2-7b-chat|Mistral-7B-v0.2-instruct
+    --model TinyLlama-1.1B-Chat-v0.6
     --weights path/to/weights.npz
     --tokenizer path/to/tokenizer.model
     --max_tokens 500
