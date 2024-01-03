@@ -25,8 +25,7 @@ mlx-llm comes with tools to easily run your LLM chat on Apple Silicon.
 |   Mistral  |  [link](https://docs.mistral.ai/models)  |   Mistral-7B-Instruct-v0.1, Mistral-7B-Instruct-v0.2  |
 |   OpenHermes-Mistral  |  [link](https://huggingface.co/mlx-community/OpenHermes-2.5-Mistral-7B/tree/main)  |   OpenHermes-2.5-Mistral-7B  |
 |   Microsoft Phi2  |  [link](https://huggingface.co/mlx-community/phi-2/tree/main)  |   Phi2  |
-|   Tiny-LLaMA |  [link](https://huggingface.co/mlx-community/TinyLlama-1.1B-Chat-v0.6/tree/main)  |   
-TinyLlama-1.1B-Chat-v0.6  |
+|   Tiny-LLaMA |  [link](https://huggingface.co/mlx-community/TinyLlama-1.1B-Chat-v0.6/tree/main)  |  TinyLlama-1.1B-Chat-v0.6  |
 
 To list all available models:
 ```python
