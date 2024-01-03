@@ -10,12 +10,13 @@ packages = [
 
 [tool.poetry.dependencies]
 python="^3.10"
-mlx = "*"
-torch = "*"
-numpy = "*"
+mlx = "0.0.5"
+torch = "2.1.2"
+numpy = "1.26.2"
 tqdm = "*"
 sentencepiece = "*"
 safetensors = "*"
+transformers = "4.36.2"
 
 # dev dependencies
 black = { version = "23.3.0", optional = true, extras = ["jupyter"] }
