@@ -133,6 +133,19 @@ class Phi2(nn.Module):
         self.transformer = TransformerDecoder(dim, n_layers, n_heads, rotary_dim)
         self.lm_head = OutputHead(dim, vocab_size)
 
+    def embed(self, inputs: mx.array) -> mx.array:
+        
+        x = self.wte(inputs)
+
+        mask = None
+        if x.shape[1] > 1:
+            mask = nn.MultiHeadAttention.create_additive_causal_mask(x.shape[1])
+            mask = mask.astype(x.dtype)
+
+        y, cache = self.transformer(x, mask, cache)
+        
+        return y
+    
     def __call__(
         self,
         inputs: mx.array,

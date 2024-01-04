@@ -25,31 +25,50 @@ def load_weights(
     
     weights = list(mx.load(weights_path).items())
     
-    if strict:
-        new_state = dict(weights)
-        # create a torch-like state dict { layer_name: weights }
-        model_state = dict(tree_flatten(model.parameters()))
-        
-        # check if new_state does not have more keys
-        extras = set(new_state.keys()) - set(model_state.keys())
-        if extras:
-            extras = " ".join(extras)
+    new_state = dict(weights)
+    # create a torch-like state dict { layer_name: weights }
+    model_state = dict(tree_flatten(model.parameters()))
+    
+    # check if new_state does not have more keys
+    extras = set(new_state.keys()) - set(model_state.keys())
+    if extras:
+        extras = " ".join(list(extras))
+        if strict:
             raise ValueError(f"Found extra keys in weights file: {extras}")
-        
-        # check if new_state does not have less keys
-        missing = set(model_state.keys()) - set(new_state.keys())
-        if missing:
-            missing = " ".join(missing)
+        else:
+            print(f"[WARNING] Found extra keys in weights file: {extras}")
+    
+    # check if new_state does not have less keys
+    missing = set(model_state.keys()) - set(new_state.keys())
+    if missing:
+        missing = " ".join(list(missing))
+        if strict:
             raise ValueError(f"Missing keys in weights file: {missing}")
-        
-        for k, w in model_state.items():
+        else:
+            print(f"[WARNING] Missing keys in weights file: {missing}")
+    
+    for k, w in model_state.items():
+        try:
             new_w = new_state[k]
-            # checking if new_w is an mx.array first
-            if not isinstance(new_w, mx.array):
+        except KeyError:
+            if strict:
+                raise ValueError(f"Missing key {k} in weights file")
+            else:
+                print(f"[WARNING] Missing key {k} in weights file")
+            continue
+        
+        # checking if new_w is an mx.array first
+        if not isinstance(new_w, mx.array):
+            if strict:
                 raise ValueError(f"Expected mx.array for key {k}, got {type(new_w)}")
-            # checking if new_w has the same shape as w
-            if new_w.shape != w.shape:
+            else:
+                print(f"[WARNING] Expected mx.array for key {k}, got {type(new_w)}")
+        # checking if new_w has the same shape as w
+        if new_w.shape != w.shape:
+            if strict:
                 raise ValueError(f"Expected shape {w.shape} for key {k}, got {new_w.shape}")
+            else:
+                print(f"[WARNING] Expected shape {w.shape} for key {k}, got {new_w.shape}")
     
     model.update(tree_unflatten(weights))
     

@@ -163,6 +163,38 @@ class Transformer(nn.Module):
         ]
         self.norm = RMSNorm(dim, eps=norm_eps)
         self.output = nn.Linear(dim, vocab_size, bias=False)
+        
+    def embed(
+        self, 
+        inputs: mx.array, 
+        cache = None, 
+        norm: bool = True
+    ) -> mx.array:
+        """Compute embedding for the input tokens.
+
+        Args:
+            inputs (mx.array): input tokens
+            cache (optional): attn layer cache. Defaults to None.
+            norm (bool, optional): whether to normalize the output. Defaults to True.
+
+        Returns:
+            mx.array: embedded tokens
+        """
+        
+        h = self.tok_embeddings(inputs)
+
+        mask = None
+        if h.shape[1] > 1:
+            mask = nn.MultiHeadAttention.create_additive_causal_mask(h.shape[1])
+            mask = mask.astype(h.dtype)
+
+        if cache is None:
+            cache = [None] * len(self.layers)
+
+        for e, layer in enumerate(self.layers):
+            h, cache[e] = layer(h, mask, cache[e])
+            
+        return self.norm(h) if norm else h
 
     def __call__(
         self,
@@ -214,6 +246,18 @@ def openhermes_25_mistral_7B() -> Transformer:
         dim=4096,
         hidden_dim=14336,
         vocab_size=32002,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=8,
+        head_dim=128,
+        norm_eps=1e-5
+    )
+    
+def e5_mistral_7b_instruct() -> Transformer:
+    return Transformer(
+        dim=4096,
+        hidden_dim=14336,
+        vocab_size=32000,
         n_layers=32,
         n_heads=32,
         n_kv_heads=8,

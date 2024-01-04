@@ -76,6 +76,7 @@ class LLM:
             weights = mx.load(weights_path)
             weights = tree_unflatten(list(weights.items()))
             weights = tree_map(lambda p: p.astype(mx.float16), weights)
+            # in next release this will be load_weights
             model.update(weights)
 
         print("\n" + "-"*20 + "\n")
