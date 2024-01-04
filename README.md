@@ -127,7 +127,7 @@ x = mx.array(tokens["input_ids"].tolist())
 embeds = model.embed(x)
 ```
 
-> **For a better example go check the example on [🤗 e5-mistral-7b-instruct page](https://huggingface.co/mlx-community/e5-mistral-7b-instruct-mlx).**
+> **For a better example go check [🤗 e5-mistral-7b-instruct page](https://huggingface.co/mlx-community/e5-mistral-7b-instruct-mlx).**
 
 
 ## **ToDos**
