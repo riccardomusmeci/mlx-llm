@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python="^3.10"
-mlx = "0.0.6"
+mlx = "0.0.7"
 torch = "2.1.2"
 numpy = "1.26.2"
 tqdm = "*"
