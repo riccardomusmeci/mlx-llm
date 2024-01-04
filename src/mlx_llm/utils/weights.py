@@ -72,20 +72,39 @@ def hf_to_npz(
     
     state_dict = {}
     for state in smart_load(ckpt_paths):
-        state_dict.update(state)    
-    
-    layers_keys = set([".".join(l.split(".")[1:3]) for l in state_dict.keys() if "layers" in l])
-    
-    keymap = {
-        "model.embed_tokens.weight": "tok_embeddings.weight",
-        **{f"model.{l}.input_layernorm.weight": f"{l}.attention_norm.weight" for l in layers_keys},
-        **{f"model.{l}.self_attn.{x}_proj.weight": f"{l}.attention.w{x}.weight" for x in ["q", "k", "v", "o"] for l in layers_keys},
-        **{f"model.{l}.post_attention_layernorm.weight": f"{l}.ffn_norm.weight" for l in layers_keys},
-        **{f"model.{l}.mlp.{x}_proj.weight": f"{l}.feed_forward.w{y}.weight" for x, y in {"gate": "1", "down": "2", "up": "3"}.items() for l in layers_keys},
-        "model.norm.weight": "norm.weight",
-        "lm_head.weight": "output.weight",
-    } 
-    
+        state_dict.update(state)
+        
+    # check if "model." in keys
+    model_found = False
+    for k in state_dict.keys():
+        if "model." in k:
+            model_found = True
+            break
+        
+    print(f"Model found: {model_found}")
+    if model_found:
+        layers_keys = set([".".join(l.split(".")[1:3]) for l in state_dict.keys() if "layers" in l])
+        keymap = {
+            "model.embed_tokens.weight": "tok_embeddings.weight",
+            **{f"model.{l}.input_layernorm.weight": f"{l}.attention_norm.weight" for l in layers_keys},
+            **{f"model.{l}.self_attn.{x}_proj.weight": f"{l}.attention.w{x}.weight" for x in ["q", "k", "v", "o"] for l in layers_keys},
+            **{f"model.{l}.post_attention_layernorm.weight": f"{l}.ffn_norm.weight" for l in layers_keys},
+            **{f"model.{l}.mlp.{x}_proj.weight": f"{l}.feed_forward.w{y}.weight" for x, y in {"gate": "1", "down": "2", "up": "3"}.items() for l in layers_keys},
+            "model.norm.weight": "norm.weight",
+            "lm_head.weight": "output.weight",
+        } 
+    else:
+        layers_keys = set([".".join(l.split(".")[0:2]) for l in state_dict.keys() if "layers" in l])
+        keymap = {
+            "embed_tokens.weight": "tok_embeddings.weight",
+            **{f"{l}.input_layernorm.weight": f"{l}.attention_norm.weight" for l in layers_keys},
+            **{f"{l}.self_attn.{x}_proj.weight": f"{l}.attention.w{x}.weight" for x in ["q", "k", "v", "o"] for l in layers_keys},
+            **{f"{l}.post_attention_layernorm.weight": f"{l}.ffn_norm.weight" for l in layers_keys},
+            **{f"{l}.mlp.{x}_proj.weight": f"{l}.feed_forward.w{y}.weight" for x, y in {"gate": "1", "down": "2", "up": "3"}.items() for l in layers_keys},
+            "norm.weight": "norm.weight",
+            "lm_head.weight": "output.weight",
+        }
+        
     permute = lambda w, n_heads : w.reshape(n_heads, 2, w.shape[0] // n_heads // 2, w.shape[1]).transpose(1, 2).reshape(*w.shape[:2])
     
     converted_state_dict = {}
@@ -93,7 +112,8 @@ def hf_to_npz(
         # keep rotary_embed original eventually
         if ".rotary_embed" in k:
             continue
-        if "model.layers" in k:
+        #if "model.layers" in k:
+        if "layers" in k:
             if "q_proj" in k:
                 w = permute(w, n_heads)
             elif "k_proj" in k:
