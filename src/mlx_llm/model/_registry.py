@@ -20,10 +20,20 @@ MODEL_ENTRYPOINTS = {
 
 MODEL_WEIGHTS = {
     "Phi2": { "repo_id": "mlx-community/phi-2", "filename": "weights.npz" },
-    # "LLaMA-2-7B-chat": { "repo_id": "mlx-community/LLaMA-2-7B-chat-mlx_llm", "filename": None },
+    "LLaMA-2-7B-chat": { "repo_id": "mlx-community/Llama-2-7b-chat-mlx", "filename": "weights.npz" },
     "TinyLlama-1.1B-Chat-v0.6": { "repo_id": "mlx-community/TinyLlama-1.1B-Chat-v0.6", "filename": "weights.npz" },
-    # "Mistral-7B-Instruct-v0.1": { "repo_id": "mlx-community/", "filename": None },
-    # "Mistral-7B-Instruct-v0.2": { "repo_id": "mlx-community/", "filename": None },
+    "Mistral-7B-Instruct-v0.2": { "repo_id": "mlx-community/Mistral-7B-Instruct-v0.2", "filename": "weights.npz" },
+    "Mistral-7B-Instruct-v0.1": { "repo_id": "mlx-community/Mistral-7B-Instruct-v0.1", "filename": "weights" },
     "OpenHermes-2.5-Mistral-7B": { "repo_id": "mlx-community/OpenHermes-2.5-Mistral-7B", "filename": "weights.npz" },
     "e5-mistral-7b-instruct": { "repo_id": "mlx-community/e5-mistral-7b-instruct-mlx", "filename": "weights.npz" }
+}
+
+MODEL_TOKENIZER = {
+    "Phi2": "microsoft/phi-2",
+    "LLaMA-2-7B-chat": "mlx-community/Llama-2-7b-chat-mlx",
+    "OpenHermes-2.5-Mistral-7B": "mlx-community/OpenHermes-2.5-Mistral-7B",
+    # "e5-mistral-7b-instruct": "mlx-community/e5-mistral-7b-instruct-mlx",
+    "Mistral-7B-Instruct-v0.2": "mlx-community/Mistral-7B-Instruct-v0.2",
+    "Mistral-7B-Instruct-v0.1": "mlx-community/Mistral-7B-Instruct-v0.1",
+    # "TinyLlama-1.1B-Chat-v0.6": "mlx-community/TinyLlama-1.1B-Chat-v0.6"
 }
