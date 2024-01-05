@@ -12,7 +12,7 @@ import numpy as np
 from tqdm import tqdm
 
 from ..model import create_model
-from ..tokenizer import ChatTokenizer
+from ..tokenizer import Tokenizer
 from ..chat import create_chat
 
 
@@ -64,7 +64,7 @@ class LLM:
         """    
         print(f"************ Building LLM ({model_name}) ************")
         
-        tokenizer = ChatTokenizer(tokenizer)
+        tokenizer = Tokenizer(tokenizer)
         model = create_model(model_name, weights=weights)
 
         print("\n" + "-"*20 + "\n")
