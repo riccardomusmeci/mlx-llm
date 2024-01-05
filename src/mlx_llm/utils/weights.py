@@ -17,6 +17,10 @@ def smart_load(ckpt_paths: List[Union[str, Path]]) -> Generator:
     Yields:
         Generator: a generator of state_dict
     """
+    
+    if isinstance(ckpt_paths, str) or isinstance(ckpt_paths, Path):
+        ckpt_paths = [ckpt_paths]
+    
     for ckpt_path in ckpt_paths:
         with Timing(f"> Loading checkpoint from {ckpt_path}.."):
             if ckpt_path.endswith(".safetensors"):
