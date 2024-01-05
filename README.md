@@ -74,7 +74,7 @@ Models in mlx-llm are now able to extract embeddings from a given text.
 from mlx_llm.model import create_model
 from transformers import AutoTokenizer
 
-model = create_model("e5-mistral-7b-instruct", weights_path="path/to/weights.npz")
+model = create_model("e5-mistral-7b-instruct")
 tokenizer = AutoTokenizer('intfloat/e5-mistral-7b-instruct')
 text = ["I like to play basketball", "I like to play tennis"]
 tokens = tokenizer(text)
@@ -88,6 +88,10 @@ embeds = model.embed(x)
 ## **ToDos**
 
 [ ] Make it installable from PyPI
+
+[ ] Quantized models
+
+[ ] Better tokenizer support 
 
 [ ] Add tests
 
