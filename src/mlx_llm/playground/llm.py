@@ -6,24 +6,22 @@ from ..utils import Timing
 import mlx.core as mx
 import mlx.nn as nn
 from mlx.utils import tree_map, tree_unflatten
-from sentencepiece import SentencePieceProcessor
 from safetensors import safe_open
 import torch
 import numpy as np
 from tqdm import tqdm
 
 from ..model import create_model
-from ..tokenizer import Tokenizer
+from ..tokenizer import ChatTokenizer
 from ..chat import create_chat
 
-mx.random.seed(0)
 
 class LLM:
     """LLM class
 
     Args:
         model (Transformer): a Transformer model
-        tokenizer: SentencePieceProcessor tokenizer
+        tokenizer: tokenizer
         personality (str, optional): model personality (a description of what personality model has). Defaults to "".
         examples (List[Dict[str, str]], optional): a list of examples of dialog [{"user": ..., "model": ...}]. Defaults to [].
         model_name (str, optional): model name. Defaults to "".
@@ -47,37 +45,27 @@ class LLM:
     @staticmethod
     def build(
         model_name: str,
-        weights_path: Union[str, Path],
         tokenizer: str,
         personality: str = "",
         examples: List[Dict[str, str]] = [],
-        no_rope: bool = True
+        weights: Union[str, bool] = True,
     ):
         """Build an LLM model from a given model name, weights path and tokenizer path.
 
         Args:
             model_name (str): Mistral model name
-            weights_path (Union[str, Path]): path to mlx weights
             tokenizer (str): path to tokenizer
             personality (str, optional): Mistral personality for chat mode. Defaults to "".
             examples (List[Dict[str, str]], optional): Mistral examples (list of {"user": ..., "model": ...} examples) for chat mode. Defaults to [].
+            weights (Union[str, bool], optional): if True, load pretrained weights from HF. If str, load weights from the given path. Defaults to True.
         
         Returns:
             LLM: LLM class instance with model and tokenizer
-        """
-        
-        assert os.path.exists(weights_path), f"Weights path {weights_path} does not exist."
-        
+        """    
         print(f"************ Building LLM ({model_name}) ************")
         
-        tokenizer = Tokenizer(tokenizer)
-        with Timing("> Loading weights"):
-            model = create_model(model_name)
-            weights = mx.load(weights_path)
-            weights = tree_unflatten(list(weights.items()))
-            weights = tree_map(lambda p: p.astype(mx.float16), weights)
-            # in next release this will be load_weights
-            model.update(weights)
+        tokenizer = ChatTokenizer(tokenizer)
+        model = create_model(model_name, weights=weights)
 
         print("\n" + "-"*20 + "\n")
     
@@ -128,7 +116,6 @@ class LLM:
             # adding question to dialog and getting prompt to model
             chat.add_question(question)
             prompt = chat.prompt
-            # prompt = question
             
             x = mx.array([self.tokenizer.bos_id()] + self.tokenizer.encode(prompt))
 
