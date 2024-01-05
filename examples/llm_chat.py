@@ -8,14 +8,14 @@ def parse_args():
     
     parser.add_argument(
       "--personality",
-      default="dwight",
+      default=None,
       type=str,
       choices=list(personalities.keys()),
     )
     
     parser.add_argument(
       "--model", 
-      default="Phi2",
+      default="TinyLlama-1.1B-Chat-v0.6",
       required=False,
       type=str, 
       help="Model name."
@@ -23,16 +23,17 @@ def parse_args():
     
     parser.add_argument(
       "--weights", 
-      required=True,
+      required=False,
+      default=True,
       type=str, 
-      help="Mistral weights path (npz file)."
+      help="if True, load pretrained weights from HF. If str, load weights from the given path."
     )
     
     parser.add_argument(
       "--tokenizer", 
       required=True,
       type=str, 
-      help="Mistral tokenizer path (model file)."
+      help="HF Tokenizer name or local tokenizer path."
     )
     
     parser.add_argument(
@@ -51,14 +52,14 @@ if __name__ == "__main__":
     
     args = parse_args()
     
-    print(f"> LLM with personality: {args.personality.upper()}")
+    print(f"> LLM with personality: {args.personality.upper() if args.personality else 'None'}")
      
     llm = LLM.build(
       model_name=args.model,
-      weights_path=args.weights,
       tokenizer=args.tokenizer,
-      personality=personalities[args.personality]["personality"],
-      examples=personalities[args.personality]["examples"],
+      personality=personalities[args.personality]["personality"] if args.personality else "",
+      examples=personalities[args.personality]["examples"] if args.personality else [],
+      weights=args.weights
     )
     
     llm.chat(max_tokens=args.max_tokens)
