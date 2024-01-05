@@ -1,1 +1,1 @@
-from .tokenizer import Tokenizer
+from .chat import ChatTokenizer
