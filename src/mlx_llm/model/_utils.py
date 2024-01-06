@@ -2,28 +2,31 @@ import os
 import mlx.nn as nn
 import mlx.core as mx
 from mlx.utils import tree_flatten, tree_unflatten
+from huggingface_hub import hf_hub_download
+from ._registry import MODEL_WEIGHTS
+
 
 def load_weights(
     model: nn.Module,
-    weights_path: str,
+    weights: str,
     strict: bool = True,
 ) -> nn.Module:
     """Load weights from a given path.
 
     Args:
         model (nn.Module): a LLM model
-        weights_path (str): path to weights
+        weights (str): path to weights
         strict (bool, optional): whether to strictly enforce that the keys in weights match the keys of the model. Defaults to True.
 
     Returns:
         nn.Module: an nn.Module with loaded weights
     """
     
-    assert os.path.exists(weights_path), f"Weights path {weights_path} does not exist."
+    assert os.path.exists(weights), f"Weights path {weights} does not exist."
     
-    print(f"Loading weights from {weights_path}")
+    print(f"Loading weights from {weights}")
     
-    weights = list(mx.load(weights_path).items())
+    weights = list(mx.load(weights).items())
     
     new_state = dict(weights)
     # create a torch-like state dict { layer_name: weights }
@@ -73,3 +76,37 @@ def load_weights(
     model.update(tree_unflatten(weights))
     
     return model
+
+def load_weights_from_hf(
+    model: nn.Module,
+    model_name: str,
+    strict: bool = True
+) -> nn.Module:
+    """Load weights from HuggingFace Hub.
+
+    Args:
+        model (nn.Module): an LLM model
+        model_name (str): model namw
+        strict (bool, optional): whether to strictly enforce that the keys in weights match the keys of the model. Defaults to True.
+
+    Returns:
+        nn.Module: an LLM with loaded weights
+    """
+    try:
+        repo_id = MODEL_WEIGHTS[model_name]["repo_id"]
+        filename = MODEL_WEIGHTS[model_name]["filename"]
+        weights_path = hf_hub_download(repo_id=repo_id, repo_type="model", filename=filename)
+    except Exception as e:
+        print(f"Error while downloading weights from HuggingFace Hub: {e}. Weights won't be loaded.")
+        weights_path = None
+        
+    if weights_path is not None:
+        model = load_weights(
+            model=model,
+            weights=weights_path,
+            strict=strict
+        )
+    return model    
+        
+        
+    
