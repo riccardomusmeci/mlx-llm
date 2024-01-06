@@ -18,6 +18,6 @@ Here's the table with available models and their tokenizers:
 |   LLaMa     |  chat        |   TinyLlama-1.1B-Chat-v0.6     |  [link](https://huggingface.co/mlx-community/TinyLlama-1.1B-Chat-v0.6/tree/main)     |  mlx-community/TinyLlama-1.1B-Chat-v0.6          |  Download tokenizer from [🤗 link](https://huggingface.co/mlx-community/TinyLlama-1.1B-Chat-v0.6/blob/main/tokenizer.model) and use it locally for chat applications  |
 |   Mistral   |  chat        |   Mistral-7B-Instruct-v0.2     |  [link](https://huggingface.co/mlx-community/Mistral-7B-Instruct-v0.2/tree/main)     |  mlx-community/Mistral-7B-Instruct-v0.2         |       |
 |   Mistral   |  chat        |   OpenHermes-2.5-Mistral-7B    |  [link](https://huggingface.co/mlx-community/OpenHermes-2.5-Mistral-7B/tree/main)    |  mlx-community/OpenHermes-2.5-Mistral-7B         |       |
-|   Mistral   |  embedding   |   e5-mistral-7b-instruct       |  [link](https://huggingface.co/mlx-community/e5-mistral-7b-instruct-mlx/tree/main)   |  mlx-community/e5-mistral-7b-instruct-mlx        |       |
+|   Mistral   |  embedding   |   e5-mistral-7b-instruct       |  [link](https://huggingface.co/mlx-community/e5-mistral-7b-instruct-mlx/tree/main)   |  intfloat/e5-mistral-7b-instruct        |       |
 |   Phi2      |  chat        |   Phi2                         |  [link](https://huggingface.co/mlx-community/phi-2/tree/main)                        |  microsoft/phi-2        |  Chat application currently not working (🤷)     |
 
