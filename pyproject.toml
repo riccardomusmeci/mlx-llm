@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "mlx_llm"
 version = "0.4.0"
-description = "Apple MLX library playground for AI on Apple Silicon GPU"
+description = "Apple MLX library for LLM on Apple Silicon GPU"
 authors = ["Riccardo Musmeci <riccardomusmeci92@gmail.com>"]
 readme = "README.md"
 packages = [
