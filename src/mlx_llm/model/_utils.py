@@ -24,7 +24,7 @@ def load_weights(
     
     assert os.path.exists(weights), f"Weights path {weights} does not exist."
     
-    print(f"Loading weights from {weights}")
+    print(f"> Loading weights from {weights}")
     
     weights = list(mx.load(weights).items())
     
@@ -39,7 +39,7 @@ def load_weights(
         if strict:
             raise ValueError(f"Found extra keys in weights file: {extras}")
         else:
-            print(f"[WARNING] Found extra keys in weights file: {extras}")
+            print(f"\t- [WARNING] Found extra keys in weights file: {extras}")
     
     # check if new_state does not have less keys
     missing = set(model_state.keys()) - set(new_state.keys())
@@ -48,7 +48,7 @@ def load_weights(
         if strict:
             raise ValueError(f"Missing keys in weights file: {missing}")
         else:
-            print(f"[WARNING] Missing keys in weights file: {missing}")
+            print(f"\t- [WARNING] Missing keys in weights file: {missing}")
     
     for k, w in model_state.items():
         try:
@@ -57,7 +57,7 @@ def load_weights(
             if strict:
                 raise ValueError(f"Missing key {k} in weights file")
             else:
-                print(f"[WARNING] Missing key {k} in weights file")
+                print(f"\t- [WARNING] Missing key {k} in weights file")
             continue
         
         # checking if new_w is an mx.array first
@@ -65,13 +65,13 @@ def load_weights(
             if strict:
                 raise ValueError(f"Expected mx.array for key {k}, got {type(new_w)}")
             else:
-                print(f"[WARNING] Expected mx.array for key {k}, got {type(new_w)}")
+                print(f"\t- [WARNING] Expected mx.array for key {k}, got {type(new_w)}")
         # checking if new_w has the same shape as w
         if new_w.shape != w.shape:
             if strict:
                 raise ValueError(f"Expected shape {w.shape} for key {k}, got {new_w.shape}")
             else:
-                print(f"[WARNING] Expected shape {w.shape} for key {k}, got {new_w.shape}")
+                print(f"\t- [WARNING] Expected shape {w.shape} for key {k}, got {new_w.shape}")
     
     model.update(tree_unflatten(weights))
     
