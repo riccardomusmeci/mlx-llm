@@ -71,14 +71,17 @@ llm.chat(max_tokens=500, temp=0.1)
 Models in mlx-llm are now able to extract embeddings from a given text.
 
 ```python
+import mlx.core as mx
+
 from mlx_llm.model import create_model
 from transformers import AutoTokenizer
 
+
 model = create_model("e5-mistral-7b-instruct")
-tokenizer = AutoTokenizer('intfloat/e5-mistral-7b-instruct')
+tokenizer = AutoTokenizer.from_pretrained('intfloat/e5-mistral-7b-instruct')
 text = ["I like to play basketball", "I like to play tennis"]
 tokens = tokenizer(text)
-x = mx.array(tokens["input_ids"].tolist())
+x = mx.array(tokens["input_ids"])
 embeds = model.embed(x)
 ```
 
