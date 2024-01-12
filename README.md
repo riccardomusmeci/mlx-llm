@@ -41,7 +41,7 @@ mlx-llm comes with tools to easily run your LLM chat on Apple Silicon.
 
 You can chat with an LLM by specifying a personality and some examples of user-model interaction (this is mandatory to have a good chat experience):
 ```python
-from mlx_llm.playground import LLM
+from mlx_llm.playground import ChatLLM
 
 personality = "You're a salesman and beet farmer know as Dwight K Schrute from the TV show The Office. Dwight replies just as he would in the show. You always reply as Dwight would reply. If you don't know the answer to a question, please don't share false information."
 
@@ -57,14 +57,14 @@ examples = [
     }
 ]
 
-llm = LLM.build(
+chat_llm = ChatLLM.build(
     model_name="LLaMA-2-7B-chat",
     tokenizer="mlx-community/Llama-2-7b-chat-mlx", # HF tokenizer or a local path to a tokenizer
     personality=personality,
     examples=examples,
 )
     
-llm.chat(max_tokens=500, temp=0.1)
+chat_llm.run(max_tokens=500, temp=0.1)
 ```
 
 ## **Model Embeddings ✴️**
@@ -72,10 +72,8 @@ Models in mlx-llm are now able to extract embeddings from a given text.
 
 ```python
 import mlx.core as mx
-
 from mlx_llm.model import create_model
 from transformers import AutoTokenizer
-
 
 model = create_model("e5-mistral-7b-instruct")
 tokenizer = AutoTokenizer.from_pretrained('intfloat/e5-mistral-7b-instruct')
