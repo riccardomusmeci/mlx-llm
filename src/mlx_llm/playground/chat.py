@@ -16,7 +16,7 @@ from ..tokenizer import Tokenizer
 from ..chat import create_chat
 
 
-class LLM:
+class Chat:
     """LLM class
 
     Args:
@@ -94,7 +94,7 @@ class LLM:
             yield y
 
     
-    def chat(self, temp: float = .1,  max_tokens: int = 1000):
+    def run(self, temp: float = .1,  max_tokens: int = 1000):
         """Chat with model
 
         Args:

@@ -12,7 +12,7 @@ def list_models() -> None:
     for model_name in list(MODEL_ENTRYPOINTS.keys()):
         print(f"\t- {model_name}")
 
-def create_model(model_name: str, weights: Union[str, bool] = True,  strict: bool = False) -> nn.Module:
+def create_model(model_name: str, weights: Union[str, bool] = True, strict: bool = False, verbose: bool = False) -> nn.Module:
     """Create a LLM model.
     
     Example:
@@ -34,6 +34,7 @@ def create_model(model_name: str, weights: Union[str, bool] = True,  strict: boo
         model_name (str): model name
         weights (Union[str, bool]): if True, load pretrained weights from HF. If str, load weights from the given path. Defaults to True.
         strict (bool, optional): whether to strictly enforce that the keys in weights match the keys of the model. Defaults to False.
+        verbose (bool, optional): whether to print the model summary. Defaults to False.
         
     Returns:
         nn.Module: a LLM model
@@ -51,13 +52,15 @@ def create_model(model_name: str, weights: Union[str, bool] = True,  strict: boo
         model = load_weights_from_hf(
             model=model,
             model_name=model_name,
-            strict=strict
+            strict=strict,
+            verbose=verbose
         )
     elif isinstance(weights, str):
         model = load_weights(
             model=model,
             weights=weights,
-            strict=strict
+            strict=strict,
+            verbose=verbose
         )
         
     return model

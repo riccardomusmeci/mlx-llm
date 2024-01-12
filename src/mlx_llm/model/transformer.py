@@ -168,14 +168,14 @@ class Transformer(nn.Module):
         self, 
         inputs: mx.array, 
         cache = None, 
-        norm: bool = True
+        norm: bool = False
     ) -> mx.array:
         """Compute embedding for the input tokens.
 
         Args:
             inputs (mx.array): input tokens
             cache (optional): attn layer cache. Defaults to None.
-            norm (bool, optional): whether to normalize the output. Defaults to True.
+            norm (bool, optional): whether to normalize the output. Defaults to False.
 
         Returns:
             mx.array: embedded tokens

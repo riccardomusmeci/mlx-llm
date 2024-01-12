@@ -10,6 +10,7 @@ def load_weights(
     model: nn.Module,
     weights: str,
     strict: bool = True,
+    verbose: bool = False
 ) -> nn.Module:
     """Load weights from a given path.
 
@@ -17,6 +18,7 @@ def load_weights(
         model (nn.Module): a LLM model
         weights (str): path to weights
         strict (bool, optional): whether to strictly enforce that the keys in weights match the keys of the model. Defaults to True.
+        verbose (bool, optional): whether to print information during loading. Defaults to False.
 
     Returns:
         nn.Module: an nn.Module with loaded weights
@@ -24,7 +26,7 @@ def load_weights(
     
     assert os.path.exists(weights), f"Weights path {weights} does not exist."
     
-    print(f"> Loading weights from {weights}")
+    if verbose: print(f"> Loading weights from {weights}")
     
     weights = list(mx.load(weights).items())
     
@@ -39,7 +41,7 @@ def load_weights(
         if strict:
             raise ValueError(f"Found extra keys in weights file: {extras}")
         else:
-            print(f"\t- [WARNING] Found extra keys in weights file: {extras}")
+            if verbose: print(f"\t- [WARNING] Found extra keys in weights file: {extras}")
     
     # check if new_state does not have less keys
     missing = set(model_state.keys()) - set(new_state.keys())
@@ -48,7 +50,7 @@ def load_weights(
         if strict:
             raise ValueError(f"Missing keys in weights file: {missing}")
         else:
-            print(f"\t- [WARNING] Missing keys in weights file: {missing}")
+            if verbose: print(f"\t- [WARNING] Missing keys in weights file: {missing}")
     
     for k, w in model_state.items():
         try:
@@ -57,7 +59,7 @@ def load_weights(
             if strict:
                 raise ValueError(f"Missing key {k} in weights file")
             else:
-                print(f"\t- [WARNING] Missing key {k} in weights file")
+                if verbose: print(f"\t- [WARNING] Missing key {k} in weights file")
             continue
         
         # checking if new_w is an mx.array first
@@ -65,13 +67,13 @@ def load_weights(
             if strict:
                 raise ValueError(f"Expected mx.array for key {k}, got {type(new_w)}")
             else:
-                print(f"\t- [WARNING] Expected mx.array for key {k}, got {type(new_w)}")
+                if verbose: print(f"\t- [WARNING] Expected mx.array for key {k}, got {type(new_w)}")
         # checking if new_w has the same shape as w
         if new_w.shape != w.shape:
             if strict:
                 raise ValueError(f"Expected shape {w.shape} for key {k}, got {new_w.shape}")
             else:
-                print(f"\t- [WARNING] Expected shape {w.shape} for key {k}, got {new_w.shape}")
+                if verbose: print(f"\t- [WARNING] Expected shape {w.shape} for key {k}, got {new_w.shape}")
     
     model.update(tree_unflatten(weights))
     
@@ -80,7 +82,8 @@ def load_weights(
 def load_weights_from_hf(
     model: nn.Module,
     model_name: str,
-    strict: bool = True
+    strict: bool = True,
+    verbose: bool = False
 ) -> nn.Module:
     """Load weights from HuggingFace Hub.
 
@@ -88,6 +91,7 @@ def load_weights_from_hf(
         model (nn.Module): an LLM model
         model_name (str): model namw
         strict (bool, optional): whether to strictly enforce that the keys in weights match the keys of the model. Defaults to True.
+        verbose (bool, optional): whether to print information during loading. Defaults to False.
 
     Returns:
         nn.Module: an LLM with loaded weights
@@ -104,7 +108,8 @@ def load_weights_from_hf(
         model = load_weights(
             model=model,
             weights=weights_path,
-            strict=strict
+            strict=strict,
+            verbose=verbose
         )
     return model    
         
