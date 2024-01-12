@@ -16,7 +16,7 @@ from ..tokenizer import Tokenizer
 from ..chat import create_chat
 
 
-class Chat:
+class ChatLLM:
     """LLM class
 
     Args:
@@ -69,7 +69,7 @@ class Chat:
 
         print("\n" + "-"*20 + "\n")
     
-        return LLM(model, tokenizer, personality, examples, model_name=model_name)
+        return ChatLLM(model, tokenizer, personality, examples, model_name=model_name)
     
 
     def generate(self, x: mx.array, temp: Optional[float] = 0.0):
