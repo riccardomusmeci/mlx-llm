@@ -2,7 +2,7 @@
 from typing import Union, List, Dict, Optional
 from pathlib import Path
 import os
-from ..utils import Timing
+from ...utils import Timing
 import mlx.core as mx
 import mlx.nn as nn
 from mlx.utils import tree_map, tree_unflatten
@@ -11,9 +11,9 @@ import torch
 import numpy as np
 from tqdm import tqdm
 
-from ..model import create_model
-from ..tokenizer import Tokenizer
-from ..chat import create_chat
+from ...model import create_model
+from .tokenizer import Tokenizer
+from .template import create_chat
 
 
 class ChatLLM:
