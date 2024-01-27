@@ -1,7 +1,8 @@
-from ._registry import MODEL_ENTRYPOINTS
+from ._registry import MODEL_ENTRYPOINTS, MODEL_TOKENIZER
 from typing import Optional, Tuple, Union
 import mlx.nn as nn
 from ._utils import load_weights, load_weights_from_hf
+from transformers import AutoTokenizer
 
 __all__ = ["list_models", "create_model"]
 
@@ -65,4 +66,21 @@ def create_model(model_name: str, weights: Union[str, bool] = True, strict: bool
         
     return model
 
+def create_tokenizer(model_name: str) -> AutoTokenizer:
+    """Create a tokenizer for a LLM model.
 
+    Args:
+        model_name (str): model name
+
+    Raises:
+        ValueError: Unknown model name
+
+    Returns:
+        AutoTokenizer: tokenizer
+    """
+    if model_name not in MODEL_TOKENIZER:
+        raise ValueError(f"Unknown model name: {model_name}.")
+    
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_TOKENIZER[model_name])
+
+    return tokenizer

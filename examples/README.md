@@ -16,3 +16,5 @@ python examples/chat/chat_llm.py \
     --tokenizer mlx-community/OpenHermes-2.5-Mistral-7B \ # can be a local path to a tokenizer.model file
     --max_tokens 500 \
 ```
+
+## **RAG**

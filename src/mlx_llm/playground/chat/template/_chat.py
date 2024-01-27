@@ -5,6 +5,8 @@ from .phi2 import Phi2Chat
 from .tiny_llama import TinyLLaMAChat
 from typing import Union, List, Dict, Optional
 
+__all__ = ["create_chat"]
+
 FACTORY = {
     "Phi2": Phi2Chat,
     "LLaMA-2-7B-chat": LLaMAChat,

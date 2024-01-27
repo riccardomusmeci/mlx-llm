@@ -15,7 +15,7 @@ def parse_args():
     
     parser.add_argument(
       "--model", 
-      default="TinyLlama-1.1B-Chat-v0.6",
+      default="OpenHermes-2.5-Mistral-7B",
       required=False,
       type=str, 
       help="Model name."
@@ -30,8 +30,9 @@ def parse_args():
     )
     
     parser.add_argument(
-      "--tokenizer", 
-      required=True,
+      "--tokenizer",
+      default="mlx-community/OpenHermes-2.5-Mistral-7B",
+      # required=True,
       type=str, 
       help="HF Tokenizer name or local tokenizer path."
     )
