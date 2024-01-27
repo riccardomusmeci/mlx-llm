@@ -8,6 +8,13 @@ from .transformer import (
     e5_mistral_7b_instruct
 )
 
+from .bert import (
+    bert_base_uncased,
+    bert_base_cased,
+    bert_large_uncased,
+    bert_large_cased
+)
+
 MODEL_ENTRYPOINTS = {
     "Phi2": phi2,
     "LLaMA-2-7B-chat": llama_2_7B_chat,
@@ -15,7 +22,11 @@ MODEL_ENTRYPOINTS = {
     # "Mistral-7B-Instruct-v0.1": mistral_7B_instruct_v01,
     "Mistral-7B-Instruct-v0.2": mistral_7B_instruct_v02,
     "OpenHermes-2.5-Mistral-7B": openhermes_25_mistral_7B,
-    "e5-mistral-7b-instruct":  e5_mistral_7b_instruct
+    "e5-mistral-7b-instruct":  e5_mistral_7b_instruct,
+    "bert-base-uncased": bert_base_uncased,
+    "bert-base-cased": bert_base_cased,
+    "bert-large-uncased": bert_large_uncased,
+    "bert-large-cased": bert_large_cased,
 }
 
 MODEL_WEIGHTS = {
