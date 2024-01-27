@@ -3,11 +3,17 @@
 mlx-llm models are available in HuggingFace and can be used with the following snippet:
 
 ```python
-from mlx_llm.model import create_model
+from mlx_llm.model import create_model, create_tokenizer
 model = create_model(
     model_name=...,
     weights=True | "path/to/weights.npz", # True if weights are in HuggingFace
 )
+
+# You can also get the tokenizer from 
+model = create_tokenizer(
+    model_name=...,
+)
+
 ```
 
 Here's the table with available models and their tokenizers:
@@ -20,4 +26,6 @@ Here's the table with available models and their tokenizers:
 |   Mistral   |  chat        |   OpenHermes-2.5-Mistral-7B    |  [link](https://huggingface.co/mlx-community/OpenHermes-2.5-Mistral-7B/tree/main)    |  mlx-community/OpenHermes-2.5-Mistral-7B         |       |
 |   Mistral   |  embedding   |   e5-mistral-7b-instruct       |  [link](https://huggingface.co/mlx-community/e5-mistral-7b-instruct-mlx/tree/main)   |  intfloat/e5-mistral-7b-instruct        |       |
 |   Phi2      |  chat        |   Phi2                         |  [link](https://huggingface.co/mlx-community/phi-2/tree/main)                        |  microsoft/phi-2        |  Chat application currently not working (🤷)     |
+|   BERT     |  embedding        |   bert-base-uncased              |  [link](https://huggingface.co/mlx-community/bert-base-uncased-mlx/tree/main)          |  bert-base-uncased-mlx         |       |
+|   BERT     |  embedding        |   bert-large-uncased              |  [link](https://huggingface.co/mlx-community/bert-large-uncased-mlx/tree/main)          |  bert-large-uncased-mlx         |       |
 
