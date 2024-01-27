@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mlx_llm"
-version = "0.4.0"
+version = "0.4.1"
 description = "Apple MLX library for LLM on Apple Silicon GPU"
 authors = ["Riccardo Musmeci <riccardomusmeci92@gmail.com>"]
 readme = "README.md"
@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python="^3.10"
-mlx = "0.0.7"
+mlx = "0.0.10"
 torch = "2.1.2"
 numpy = "1.26.2"
 tqdm = "*"
