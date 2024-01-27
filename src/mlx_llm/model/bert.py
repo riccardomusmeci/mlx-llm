@@ -113,6 +113,7 @@ class Bert(nn.Module):
         token_type_ids: mx.array,
         attention_mask: mx.array = None,
     ) -> Tuple[mx.array, mx.array]:
+        
         x = self.embeddings(input_ids, token_type_ids)
 
         if attention_mask is not None:

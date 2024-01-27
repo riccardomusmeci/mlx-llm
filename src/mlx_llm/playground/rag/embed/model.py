@@ -3,7 +3,7 @@ import mlx.nn as nn
 import numpy as np
 from mlx_llm.model import create_model
 from transformers import AutoTokenizer
-from typing import Literal, List, Tuple, Union
+from typing import Literal, List, Tuple, Union, Dict
 from mlx_llm.model import create_model, create_tokenizer
 
 class EmbeddingModel:
@@ -25,6 +25,7 @@ class EmbeddingModel:
         self.model = create_model(model_name=model_name, weights=True, strict=False)
         self.tokenizer = create_tokenizer(model_name)
         self.max_length = max_length
+        self.is_bert = 'bert' in model_name
         
         self.model.eval()
         self.mode = mode
@@ -74,14 +75,14 @@ class EmbeddingModel:
         embeds = embeds / mx.linalg.norm(embeds, ord=2, axis=1)[..., None]
         return mx.array(embeds)
     
-    def prepare_tokens(self, text: List) -> Tuple[List, List]:
+    def prepare_tokens(self, text: List) -> Dict[str, mx.array]:
         """Prepare tokens for the model
 
         Args:
             text (List): input text
 
         Returns:
-            Tuple[List, List]: input ids and attention mask
+            Dict[str, mx.array]: tokens for the model
         """
         tokens = self.tokenizer(
             text, 
@@ -91,11 +92,12 @@ class EmbeddingModel:
             truncation=True
         )
         
-        tokens['input_ids'] = [
-            input_ids + [self.tokenizer.eos_token_id] for input_ids in tokens['input_ids']
-        ]
+        if not self.is_bert: # otherwise it puts None at the end with eos_token_id
+            tokens['input_ids'] = [
+                input_ids + [self.tokenizer.eos_token_id] for input_ids in tokens['input_ids']
+            ]
         
-        if self.tokenizer.pad_token_id is None:
+        if self.tokenizer.pad_token_id is None:    
             self.tokenizer.pad_token = self.tokenizer.eos_token
         
         tokens = self.tokenizer.pad(
@@ -105,10 +107,8 @@ class EmbeddingModel:
             return_tensors='np'
         )
         
-        x = mx.array(tokens["input_ids"].tolist())
-        attn_mask = mx.array(tokens["attention_mask"].tolist())
-        
-        return x, attn_mask
+        tokens = {key: mx.array(v) for key, v in tokens.items()}
+        return tokens
         
     def __call__(self, text: Union[List[str], str]) -> mx.array:
         """Compute embedding for the input tokens.
@@ -123,11 +123,14 @@ class EmbeddingModel:
         if isinstance(text, str):
             text = [text]
         
-        x, attn_mask = self.prepare_tokens(text)
-        embeds = self.model.embed(x)
-        if self.mode == 'last':
-            embeds = self.last_token_pool(embeds, attn_mask)
-        if self.mode == 'avg':
-            embeds = self.average_pool(embeds, attn_mask)
-        embeds = self.normalize(embeds)        
+        tokens = self.prepare_tokens(text)
+        if self.is_bert:
+            _, embeds = self.model(**tokens)            
+        else:
+            embeds = self.model.embed(tokens["input_ids"])
+            if self.mode == 'last':
+                embeds = self.last_token_pool(embeds, tokens["attention_mask"])
+            if self.mode == 'avg':
+                embeds = self.average_pool(embeds, tokens["attention_mask"])
+            embeds = self.normalize(embeds)        
         return embeds
