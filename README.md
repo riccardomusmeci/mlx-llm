@@ -36,12 +36,38 @@ from mlx_llm.model import list_models
 print(list_models())
 ```
 
-## **LLM Chat 📱**
+### **Model Embeddings ✴️**
+Models in mlx-llm are now able to extract embeddings from a given text.
+
+```python
+import mlx.core as mx
+from mlx_llm.model import create_model
+from transformers import AutoTokenizer
+
+model = create_model("e5-mistral-7b-instruct")
+tokenizer = AutoTokenizer.from_pretrained('intfloat/e5-mistral-7b-instruct')
+text = ["I like to play basketball", "I like to play tennis"]
+tokens = tokenizer(text)
+x = mx.array(tokens["input_ids"])
+embeds = model.embed(x)
+```
+
+> **For a better example go check [🤗 e5-mistral-7b-instruct page](https://huggingface.co/mlx-community/e5-mistral-7b-instruct-mlx).**
+
+## **Applications 📁**
+
+With `mlx-llm` you can run a variety of applications, such as:
+- Chat with an LLM
+- Retrieval Augmented Generation (RAG) running locally
+
+Below an example of how to chat with an LLM, but for more details go check the [examples](examples/README.md) documentation.
+
+### **Chat with LLM 📱**
 mlx-llm comes with tools to easily run your LLM chat on Apple Silicon.
 
 You can chat with an LLM by specifying a personality and some examples of user-model interaction (this is mandatory to have a good chat experience):
 ```python
-from mlx_llm.playground import ChatLLM
+from mlx_llm.playground.chat import ChatLLM
 
 personality = "You're a salesman and beet farmer know as Dwight K Schrute from the TV show The Office. Dwight replies just as he would in the show. You always reply as Dwight would reply. If you don't know the answer to a question, please don't share false information."
 
@@ -63,42 +89,18 @@ chat_llm = ChatLLM.build(
     personality=personality,
     examples=examples,
 )
-    
+
 chat_llm.run(max_tokens=500, temp=0.1)
 ```
 
-## **Model Embeddings ✴️**
-Models in mlx-llm are now able to extract embeddings from a given text.
-
-```python
-import mlx.core as mx
-from mlx_llm.model import create_model
-from transformers import AutoTokenizer
-
-model = create_model("e5-mistral-7b-instruct")
-tokenizer = AutoTokenizer.from_pretrained('intfloat/e5-mistral-7b-instruct')
-text = ["I like to play basketball", "I like to play tennis"]
-tokens = tokenizer(text)
-x = mx.array(tokens["input_ids"])
-embeds = model.embed(x)
-```
-
-> **For a better example go check [🤗 e5-mistral-7b-instruct page](https://huggingface.co/mlx-community/e5-mistral-7b-instruct-mlx).**
-
-
 ## **ToDos**
 
-[ ] Make it installable from PyPI
+[ ] Chat and RAG with streamlit???
 
-[ ] Quantized models
+[ ] Test with quantized models
 
-[ ] Better tokenizer support 
-
-[ ] Add tests
-
-[ ] One class to rule them all (LLaMA, Phi2 and Mixtral)
+[ ] LoRA and QLoRA
 
 ## 📧 Contact
 
 If you have any questions, please email `riccardomusmeci92@gmail.com`
-

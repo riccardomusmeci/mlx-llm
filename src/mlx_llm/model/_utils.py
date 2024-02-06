@@ -1,17 +1,14 @@
 import os
-import mlx.nn as nn
+
 import mlx.core as mx
-from mlx.utils import tree_flatten, tree_unflatten
+import mlx.nn as nn
 from huggingface_hub import hf_hub_download
+from mlx.utils import tree_flatten, tree_unflatten
+
 from ._registry import MODEL_WEIGHTS
 
 
-def load_weights(
-    model: nn.Module,
-    weights: str,
-    strict: bool = True,
-    verbose: bool = False
-) -> nn.Module:
+def load_weights(model: nn.Module, weights: str, strict: bool = True, verbose: bool = False) -> nn.Module:
     """Load weights from a given path.
 
     Args:
@@ -23,17 +20,18 @@ def load_weights(
     Returns:
         nn.Module: an nn.Module with loaded weights
     """
-    
+
     assert os.path.exists(weights), f"Weights path {weights} does not exist."
-    
-    if verbose: print(f"> Loading weights from {weights}")
-    
+
+    if verbose:
+        print(f"> Loading weights from {weights}")
+
     weights = list(mx.load(weights).items())
-    
+
     new_state = dict(weights)
     # create a torch-like state dict { layer_name: weights }
     model_state = dict(tree_flatten(model.parameters()))
-    
+
     # check if new_state does not have more keys
     extras = set(new_state.keys()) - set(model_state.keys())
     if extras:
@@ -41,8 +39,9 @@ def load_weights(
         if strict:
             raise ValueError(f"Found extra keys in weights file: {extras}")
         else:
-            if verbose: print(f"\t- [WARNING] Found extra keys in weights file: {extras}")
-    
+            if verbose:
+                print(f"\t- [WARNING] Found extra keys in weights file: {extras}")
+
     # check if new_state does not have less keys
     missing = set(model_state.keys()) - set(new_state.keys())
     if missing:
@@ -50,41 +49,41 @@ def load_weights(
         if strict:
             raise ValueError(f"Missing keys in weights file: {missing}")
         else:
-            if verbose: print(f"\t- [WARNING] Missing keys in weights file: {missing}")
-    
+            if verbose:
+                print(f"\t- [WARNING] Missing keys in weights file: {missing}")
+
     for k, w in model_state.items():
         try:
             new_w = new_state[k]
         except KeyError:
             if strict:
-                raise ValueError(f"Missing key {k} in weights file")
+                raise KeyError(f"Missing key {k} in weights file")  # noqa: B904
             else:
-                if verbose: print(f"\t- [WARNING] Missing key {k} in weights file")
+                if verbose:
+                    print(f"\t- [WARNING] Missing key {k} in weights file")
             continue
-        
+
         # checking if new_w is an mx.array first
         if not isinstance(new_w, mx.array):
             if strict:
                 raise ValueError(f"Expected mx.array for key {k}, got {type(new_w)}")
             else:
-                if verbose: print(f"\t- [WARNING] Expected mx.array for key {k}, got {type(new_w)}")
+                if verbose:
+                    print(f"\t- [WARNING] Expected mx.array for key {k}, got {type(new_w)}")
         # checking if new_w has the same shape as w
         if new_w.shape != w.shape:
             if strict:
                 raise ValueError(f"Expected shape {w.shape} for key {k}, got {new_w.shape}")
             else:
-                if verbose: print(f"\t- [WARNING] Expected shape {w.shape} for key {k}, got {new_w.shape}")
-    
+                if verbose:
+                    print(f"\t- [WARNING] Expected shape {w.shape} for key {k}, got {new_w.shape}")
+
     model.update(tree_unflatten(weights))
-    
+
     return model
 
-def load_weights_from_hf(
-    model: nn.Module,
-    model_name: str,
-    strict: bool = True,
-    verbose: bool = False
-) -> nn.Module:
+
+def load_weights_from_hf(model: nn.Module, model_name: str, strict: bool = True, verbose: bool = False) -> nn.Module:
     """Load weights from HuggingFace Hub.
 
     Args:
@@ -103,15 +102,7 @@ def load_weights_from_hf(
     except Exception as e:
         print(f"Error while downloading weights from HuggingFace Hub: {e}. Weights won't be loaded.")
         weights_path = None
-        
+
     if weights_path is not None:
-        model = load_weights(
-            model=model,
-            weights=weights_path,
-            strict=strict,
-            verbose=verbose
-        )
-    return model    
-        
-        
-    
+        model = load_weights(model=model, weights=weights_path, strict=strict, verbose=verbose)
+    return model

@@ -83,10 +83,11 @@ exclude = [
   "node_modules",
   "venv",
   "__pycache__",
-  "docs/source/conf.py",
   "bin",
   "lib",
-  ".cicd",
+  "src/mlx_llm/model/bert.py",
+  "src/mlx_llm/model/phi2.py",
+  "src/mlx_llm/model/transformer.py",
 ]
 #per-file-ignores = {}
 
@@ -179,6 +180,9 @@ exclude = [
   'lib',
   '.cicd',
   "tests",
+  "src/mlx_llm/model/transformer.py",
+  "src/mlx_llm/model/phi2.py",
+  "src/mlx_llm/model/bert.py",
 ]
 # enables PEP 420 style namespace packages.
 namespace_packages = true
