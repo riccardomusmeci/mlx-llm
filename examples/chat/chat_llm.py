@@ -2,7 +2,7 @@ import argparse
 
 from personality import personalities
 
-from mlx_llm.playground import ChatLLM
+from mlx_llm.playground.chat import ChatLLM
 
 
 def parse_args():
