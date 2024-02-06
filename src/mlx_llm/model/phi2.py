@@ -14,12 +14,7 @@ class LayerNorm(nn.LayerNorm):
 
 
 class RoPEAttention(nn.Module):
-    def __init__(
-        self, 
-        dim: int, 
-        n_heads: int, 
-        rotary_dim: int
-    ):
+    def __init__(self, dim: int, n_heads: int, rotary_dim: int):
         super().__init__()
 
         self.n_heads = n_heads
@@ -68,14 +63,9 @@ class RoPEAttention(nn.Module):
 
 
 class ParallelBlock(nn.Module):
-    def __init__(
-        self, 
-        dim: int,
-        n_heads: int,
-        rotary_dim: int
-    ):
+    def __init__(self, dim: int, n_heads: int, rotary_dim: int):
         super().__init__()
-        
+
         hidden_dim = dim * 4
         self.mixer = RoPEAttention(dim, n_heads, rotary_dim)
         self.ln = LayerNorm(dim)
@@ -91,13 +81,7 @@ class ParallelBlock(nn.Module):
 
 
 class TransformerDecoder(nn.Module):
-    def __init__(
-        self, 
-        dim: int,
-        n_layers: int, # num_layers
-        n_heads: int, # num_heads
-        rotary_dim: int # rotary_dim
-    ):
+    def __init__(self, dim: int, n_layers: int, n_heads: int, rotary_dim: int):  # num_layers  # num_heads  # rotary_dim
         super().__init__()
         self.h = [ParallelBlock(dim, n_heads, rotary_dim) for i in range(n_layers)]
 
@@ -117,24 +101,22 @@ class OutputHead(nn.Module):
 
     def __call__(self, inputs):
         return self.linear(self.ln(inputs))
-    
+
 
 class Phi2(nn.Module):
     def __init__(
-        self, 
-        dim: int, # model_dim
-        vocab_size: int, # num_vocab
-        n_heads: int, # num_heads
-        n_layers: int, # num_layers
-        rotary_dim: int # rotary_dim
+        self,
+        dim: int,  # model_dim
+        vocab_size: int,  # num_vocab
+        n_heads: int,  # num_heads
+        n_layers: int,  # num_layers
+        rotary_dim: int,  # rotary_dim
     ):
-        
         self.wte = nn.Embedding(vocab_size, dim)
         self.transformer = TransformerDecoder(dim, n_layers, n_heads, rotary_dim)
         self.lm_head = OutputHead(dim, vocab_size)
 
     def embed(self, inputs: mx.array) -> mx.array:
-        
         x = self.wte(inputs)
 
         mask = None
@@ -143,9 +125,9 @@ class Phi2(nn.Module):
             mask = mask.astype(x.dtype)
 
         y, cache = self.transformer(x, mask, cache)
-        
+
         return y
-    
+
     def __call__(
         self,
         inputs: mx.array,
@@ -162,12 +144,29 @@ class Phi2(nn.Module):
         y, cache = self.transformer(x, mask, cache)
         return self.lm_head(y), cache
 
+    def generate(self, x: mx.array, temp: Optional[float] = 0.0):
+        """Generate tokens from a given input
+
+        Args:
+            x (mx.array): input tokens
+            temp (Optional[float], optional): model temperature. Defaults to 0.0.
+        """
+
+        def sample(logits):
+            if temp == 0:
+                return mx.argmax(logits, axis=-1)
+            else:
+                return mx.random.categorical(logits * (1 / temp))
+
+        logits, cache = self(x[None])
+        y = sample(logits[:, -1, :])
+        yield y
+
+        while True:
+            logits, cache = self(y[:, None], cache=cache)
+            y = sample(logits.squeeze(1))
+            yield y
+
 
 def phi2() -> Phi2:
-    return Phi2(
-        dim=2560,
-        vocab_size=51200,
-        n_heads=32,
-        n_layers=32,
-        rotary_dim=32
-    )
+    return Phi2(dim=2560, vocab_size=51200, n_heads=32, n_layers=32, rotary_dim=32)

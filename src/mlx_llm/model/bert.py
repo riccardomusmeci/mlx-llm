@@ -1,4 +1,5 @@
 from typing import Optional, Tuple
+
 import mlx.core as mx
 import mlx.nn as nn
 
@@ -37,18 +38,9 @@ class TransformerEncoderLayer(nn.Module):
 
 
 class TransformerEncoder(nn.Module):
-    def __init__(
-        self, 
-        dim: int, 
-        num_layers: int, 
-        num_heads: int, 
-        mlp_dim: Optional[int] = None
-    ):
+    def __init__(self, dim: int, num_layers: int, num_heads: int, mlp_dim: Optional[int] = None):
         super().__init__()
-        self.layers = [
-            TransformerEncoderLayer(dim, num_heads, mlp_dim)
-            for i in range(num_layers)
-        ]
+        self.layers = [TransformerEncoderLayer(dim, num_heads, mlp_dim) for i in range(num_layers)]
 
     def __call__(self, x, mask):
         for layer in self.layers:
@@ -58,25 +50,15 @@ class TransformerEncoder(nn.Module):
 
 
 class BertEmbeddings(nn.Module):
-    def __init__(
-        self, 
-        dim: int, 
-        vocab_size: int,
-        layer_norm_eps: float,
-        max_position_embeddings: int
-    ):
+    def __init__(self, dim: int, vocab_size: int, layer_norm_eps: float, max_position_embeddings: int):
         self.word_embeddings = nn.Embedding(vocab_size, dim)
         self.token_type_embeddings = nn.Embedding(2, dim)
-        self.position_embeddings = nn.Embedding(
-            max_position_embeddings, dim
-        )
+        self.position_embeddings = nn.Embedding(max_position_embeddings, dim)
         self.norm = nn.LayerNorm(dim, eps=layer_norm_eps)
 
     def __call__(self, input_ids: mx.array, token_type_ids: mx.array) -> mx.array:
         words = self.word_embeddings(input_ids)
-        position = self.position_embeddings(
-            mx.broadcast_to(mx.arange(input_ids.shape[1]), input_ids.shape)
-        )
+        position = self.position_embeddings(mx.broadcast_to(mx.arange(input_ids.shape[1]), input_ids.shape))
         token_types = self.token_type_embeddings(token_type_ids)
 
         embeddings = position + words + token_types
@@ -85,20 +67,20 @@ class BertEmbeddings(nn.Module):
 
 class Bert(nn.Module):
     def __init__(
-        self, 
-        dim: int, 
+        self,
+        dim: int,
         num_attention_heads: int,
         num_hidden_layers: int,
         vocab_size: int,
         hidden_dropout_prob: float,
         layer_norm_eps: float,
-        max_position_embeddings: int
+        max_position_embeddings: int,
     ):
         self.embeddings = BertEmbeddings(
             dim=dim,
             vocab_size=vocab_size,
             layer_norm_eps=layer_norm_eps,
-            max_position_embeddings=max_position_embeddings
+            max_position_embeddings=max_position_embeddings,
         )
         self.encoder = TransformerEncoder(
             num_layers=num_hidden_layers,
@@ -113,7 +95,6 @@ class Bert(nn.Module):
         token_type_ids: mx.array,
         attention_mask: mx.array = None,
     ) -> Tuple[mx.array, mx.array]:
-        
         x = self.embeddings(input_ids, token_type_ids)
 
         if attention_mask is not None:
@@ -123,7 +104,8 @@ class Bert(nn.Module):
 
         y = self.encoder(x, attention_mask)
         return y, mx.tanh(self.pooler(y[:, 0]))
-    
+
+
 def bert_base_uncased():
     return Bert(
         dim=768,
@@ -132,9 +114,10 @@ def bert_base_uncased():
         vocab_size=30522,
         hidden_dropout_prob=0.1,
         layer_norm_eps=1e-12,
-        max_position_embeddings=512
+        max_position_embeddings=512,
     )
-    
+
+
 def bert_base_cased():
     return Bert(
         dim=768,
@@ -143,9 +126,10 @@ def bert_base_cased():
         vocab_size=28996,
         hidden_dropout_prob=0.1,
         layer_norm_eps=1e-12,
-        max_position_embeddings=512
+        max_position_embeddings=512,
     )
-    
+
+
 def bert_large_uncased():
     return Bert(
         dim=1024,
@@ -154,17 +138,29 @@ def bert_large_uncased():
         vocab_size=30522,
         hidden_dropout_prob=0.1,
         layer_norm_eps=1e-12,
-        max_position_embeddings=512
+        max_position_embeddings=512,
     )
-    
+
+
 def bert_large_cased():
     return Bert(
         dim=1024,
         num_attention_heads=16,
         num_hidden_layers=24,
         vocab_size=28996,
-        attention_probs_dropout_prob=0.1,
         hidden_dropout_prob=0.1,
         layer_norm_eps=1e-12,
-        max_position_embeddings=512
+        max_position_embeddings=512,
+    )
+
+
+def multilingual_e5_large():
+    return Bert(
+        dim=1024,
+        num_attention_heads=16,
+        num_hidden_layers=24,
+        vocab_size=250002,
+        hidden_dropout_prob=0.1,
+        layer_norm_eps=1e-5,
+        max_position_embeddings=514,
     )

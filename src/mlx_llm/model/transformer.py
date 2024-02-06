@@ -3,13 +3,14 @@ from typing import Optional, Tuple
 import mlx.core as mx
 import mlx.nn as nn
 
+
 class RMSNorm(nn.Module):
     def __init__(self, dims: int, eps: float = 1e-5):
         super().__init__()
         self.weight = mx.ones((dims,))
         self.eps = eps
 
-    def _norm(self, x):
+    def _norm(self, x) -> mx.array:
         return x * mx.rsqrt(x.square().mean(-1, keepdims=True) + self.eps)
 
     def __call__(self, x):
@@ -18,14 +19,7 @@ class RMSNorm(nn.Module):
 
 
 class Attention(nn.Module):
-    def __init__(
-        self, 
-        dim: int, 
-        n_heads: int, 
-        n_kv_heads: int, 
-        head_dim: int,
-        rope_traditional: bool = True
-    ):
+    def __init__(self, dim: int, n_heads: int, n_kv_heads: int, head_dim: int, rope_traditional: bool = True):
         super().__init__()
 
         self.n_heads: int = n_heads
@@ -34,7 +28,7 @@ class Attention(nn.Module):
         self.repeats = n_heads // n_kv_heads
 
         self.scale = head_dim**-0.5
-        
+
         self.wq = nn.Linear(dim, n_heads * head_dim, bias=False)
         self.wk = nn.Linear(dim, n_kv_heads * head_dim, bias=False)
         self.wv = nn.Linear(dim, n_kv_heads * head_dim, bias=False)
@@ -48,7 +42,6 @@ class Attention(nn.Module):
         mask: Optional[mx.array] = None,
         cache: Optional[Tuple[mx.array, mx.array]] = None,
     ) -> mx.array:
-
         B, L, D = x.shape
 
         queries, keys, values = self.wq(x), self.wk(x), self.wv(x)
@@ -96,24 +89,20 @@ class FeedForward(nn.Module):
 
 class TransformerBlock(nn.Module):
     def __init__(
-        self, 
-        dim: int, 
-        n_heads: int, 
-        n_kv_heads: int, 
-        head_dim: int, 
+        self,
+        dim: int,
+        n_heads: int,
+        n_kv_heads: int,
+        head_dim: int,
         hidden_dim: int,
         norm_eps: float,
-        rope_traditional: bool = True
+        rope_traditional: bool = True,
     ):
         super().__init__()
         self.n_heads = n_heads
         self.dim = dim
         self.attention = Attention(
-            dim=dim,
-            n_heads=n_heads,
-            n_kv_heads=n_kv_heads,
-            head_dim=head_dim,
-            rope_traditional=rope_traditional
+            dim=dim, n_heads=n_heads, n_kv_heads=n_kv_heads, head_dim=head_dim, rope_traditional=rope_traditional
         )
         self.feed_forward = FeedForward(dim=dim, hidden_dim=hidden_dim)
         self.attention_norm = RMSNorm(dim, eps=norm_eps)
@@ -143,7 +132,7 @@ class Transformer(nn.Module):
         n_kv_heads: int,
         head_dim: int,
         norm_eps: float,
-        rope_traditional: bool = True
+        rope_traditional: bool = True,
     ):
         super().__init__()
         self.vocab_size = vocab_size
@@ -158,18 +147,14 @@ class Transformer(nn.Module):
                 head_dim=head_dim,
                 hidden_dim=hidden_dim,
                 norm_eps=norm_eps,
-                rope_traditional=rope_traditional
-            )  for _ in range(n_layers)
+                rope_traditional=rope_traditional,
+            )
+            for _ in range(n_layers)
         ]
         self.norm = RMSNorm(dim, eps=norm_eps)
         self.output = nn.Linear(dim, vocab_size, bias=False)
-        
-    def embed(
-        self, 
-        inputs: mx.array, 
-        cache = None, 
-        norm: bool = False
-    ) -> mx.array:
+
+    def embed(self, inputs: mx.array, cache=None, norm: bool = False) -> mx.array:
         """Compute embedding for the input tokens.
 
         Args:
@@ -180,7 +165,7 @@ class Transformer(nn.Module):
         Returns:
             mx.array: embedded tokens
         """
-        
+
         h = self.tok_embeddings(inputs)
 
         mask = None
@@ -193,14 +178,10 @@ class Transformer(nn.Module):
 
         for e, layer in enumerate(self.layers):
             h, cache[e] = layer(h, mask, cache[e])
-            
+
         return self.norm(h) if norm else h
 
-    def __call__(
-        self,
-        inputs: mx.array,
-        cache=None,
-    ):
+    def __call__(self, inputs: mx.array, cache=None):
         h = self.tok_embeddings(inputs)
 
         mask = None
@@ -215,56 +196,55 @@ class Transformer(nn.Module):
             h, cache[e] = layer(h, mask, cache[e])
 
         return self.output(self.norm(h)), cache
-    
-    
+
+    def generate(self, x: mx.array, temp: Optional[float] = 0.0):
+        """Generate tokens from a given input
+
+        Args:
+            x (mx.array): input tokens
+            temp (Optional[float], optional): model temperature. Defaults to 0.0.
+        """
+
+        def sample(logits):
+            if temp == 0:
+                return mx.argmax(logits, axis=-1)
+            else:
+                return mx.random.categorical(logits * (1 / temp))
+
+        logits, cache = self(x[None])
+        y = sample(logits[:, -1, :])
+        yield y
+
+        while True:
+            logits, cache = self(y[:, None], cache=cache)
+            y = sample(logits.squeeze(1))
+            yield y
+
+
 def mistral_7B_instruct_v01() -> Transformer:
     return Transformer(
-        dim=4096,
-        hidden_dim=14336,
-        vocab_size=32000,
-        n_layers=32,
-        n_heads=32,
-        n_kv_heads=8,
-        head_dim=128,
-        norm_eps=1e-5
+        dim=4096, hidden_dim=14336, vocab_size=32000, n_layers=32, n_heads=32, n_kv_heads=8, head_dim=128, norm_eps=1e-5
     )
-    
+
+
 def mistral_7B_instruct_v02() -> Transformer:
     return Transformer(
-        dim=4096,
-        hidden_dim=14336,
-        vocab_size=32000,
-        n_layers=32,
-        n_heads=32,
-        n_kv_heads=8,
-        head_dim=128,
-        norm_eps=1e-5
+        dim=4096, hidden_dim=14336, vocab_size=32000, n_layers=32, n_heads=32, n_kv_heads=8, head_dim=128, norm_eps=1e-5
     )
+
 
 def openhermes_25_mistral_7B() -> Transformer:
     return Transformer(
-        dim=4096,
-        hidden_dim=14336,
-        vocab_size=32002,
-        n_layers=32,
-        n_heads=32,
-        n_kv_heads=8,
-        head_dim=128,
-        norm_eps=1e-5
+        dim=4096, hidden_dim=14336, vocab_size=32002, n_layers=32, n_heads=32, n_kv_heads=8, head_dim=128, norm_eps=1e-5
     )
-    
+
+
 def e5_mistral_7b_instruct() -> Transformer:
     return Transformer(
-        dim=4096,
-        hidden_dim=14336,
-        vocab_size=32000,
-        n_layers=32,
-        n_heads=32,
-        n_kv_heads=8,
-        head_dim=128,
-        norm_eps=1e-5
+        dim=4096, hidden_dim=14336, vocab_size=32000, n_layers=32, n_heads=32, n_kv_heads=8, head_dim=128, norm_eps=1e-5
     )
-      
+
+
 def llama_2_7B_chat() -> Transformer:
     return Transformer(
         dim=4096,
@@ -274,9 +254,10 @@ def llama_2_7B_chat() -> Transformer:
         n_heads=32,
         n_kv_heads=32,
         head_dim=128,
-        norm_eps=1e-5
+        norm_eps=1e-5,
     )
-    
+
+
 def tiny_llama_chat_v06() -> Transformer:
     return Transformer(
         dim=2048,
@@ -285,7 +266,7 @@ def tiny_llama_chat_v06() -> Transformer:
         n_kv_heads=4,
         n_layers=22,
         vocab_size=32000,
-        head_dim=64, # 2048 / 32,
+        head_dim=64,  # 2048 / 32,
         norm_eps=1e-5,
-        rope_traditional=False
+        rope_traditional=False,
     )
