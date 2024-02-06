@@ -1,9 +1,10 @@
-from .teknium import OpenHermesChat
-from .mistral import MistralChat
+from typing import Dict, List, Optional, Union
+
 from .llama import LLaMAChat
+from .mistral import MistralChat
 from .phi2 import Phi2Chat
+from .teknium import OpenHermesChat
 from .tiny_llama import TinyLLaMAChat
-from typing import Union, List, Dict, Optional
 
 __all__ = ["create_chat"]
 
@@ -16,10 +17,11 @@ FACTORY = {
     "TinyLlama-1.1B-Chat-v0.6": TinyLLaMAChat,
 }
 
+
 def create_chat(
     model_name: str,
     personality: str = "",
-    examples: List[Dict[str, str]] = [],
+    examples: List[Dict[str, str]] = (),
 ):
     """Create chat class based on model name
 
@@ -31,10 +33,7 @@ def create_chat(
     Returns:
         Chat: chat class
     """
-    
-    assert (
-        model_name in list(FACTORY.keys())
-    ), f"Unknown model chat: {model_name}."
-    
+
+    assert model_name in list(FACTORY.keys()), f"Unknown model chat: {model_name}."
+
     return FACTORY[model_name](personality, examples)
-    

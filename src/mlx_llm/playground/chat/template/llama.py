@@ -1,5 +1,7 @@
-from typing import List, Dict
+from typing import Dict, List
+
 from .base import Chat
+
 
 class LLaMAChat(Chat):
     """LLaMAChat
@@ -9,16 +11,15 @@ class LLaMAChat(Chat):
         examples (List[Dict[str, str]]): a list of examples of dialog [{"question": ..., "answer": ...}]
         end_str (str, optional): end of the model answer. Defaults to "[INST]".
     """
-    
+
     def __init__(self, personality: str, examples: List[Dict[str, str]], end_str: str = "[INST]"):
-        
         super().__init__(personality, examples, end_str)
         self.SYS_START = "<<SYS>>"
         self.SYS_END = "<</SYS>>"
         self.INST_START = "[INST]"
         self.INST_END = "[/INST]"
-    
-    @property   
+
+    @property
     def history(self) -> str:
         """Dialog history
 
@@ -26,8 +27,8 @@ class LLaMAChat(Chat):
             str: dialog history in LLaMA format
         """
         prompt = ""
-        for i, example in enumerate(self.examples):
-            prompt += example["user"]  + " " + self.INST_END
+        for _i, example in enumerate(self.examples):
+            prompt += example["user"] + " " + self.INST_END
             if example["model"] is not None:
                 prompt += " " + example["model"] + " " + self.INST_START + " "
         return prompt
@@ -42,4 +43,3 @@ class LLaMAChat(Chat):
         {{ user_msg_1 }} [/INST] {{ model_answer_1 }} [INST] {{ user_msg_2 }} [/INST]
         """
         return f"{self.INST_START} {self.SYS_START}\n{self.personality}\n{self.SYS_END}\n\n{self.history}"
- 

@@ -1,34 +1,36 @@
+from typing import List, Optional
+
 from sentencepiece import SentencePieceProcessor
 from transformers import AutoTokenizer
-from typing import Optional, List
+
 
 class Tokenizer:
     """A simple tokenizer class that is able to load both HF tokenizers and SentencePiece tokenizers.
     It performes easy encoding. For facny onece, go with custom HF tokenizers.
-    
+
     Args:
         tokenizer (str): path to tokenizer / HF tokenizer name
         return_tensors (Optional[str], optional): return tensors type. Defaults to "np".
         return_attention_mask (Optional[bool], optional): return attention mask. Defaults to False.
     """
-    
+
     def __init__(
-        self, 
-        tokenizer,
+        self,
+        tokenizer: str,
         return_tensors: Optional[str] = "np",
         return_attention_mask: Optional[bool] = False,
-    ):
-        # loading tokenizer    
+    ) -> None:
+        # loading tokenizer
         if tokenizer.endswith(".model"):
             self.tokenizer = SentencePieceProcessor(tokenizer)
             self.from_hf = False
         else:
             self.tokenizer = AutoTokenizer.from_pretrained(tokenizer, trust_remote_code=True)
             self.from_hf = True
-            
+
         self.return_tensors = return_tensors
         self.return_attention_mask = return_attention_mask
-        
+
     def encode(self, text: str) -> List[int]:
         """Encode a text to a list of token ids.
 
@@ -47,7 +49,7 @@ class Tokenizer:
             return tokens[0].tolist()
         else:
             return self.tokenizer.encode(text)
-    
+
     def bos_id(self) -> int:
         """Get the beginning of sentence token id.
 
@@ -58,7 +60,7 @@ class Tokenizer:
             return self.tokenizer.bos_token_id
         else:
             return self.tokenizer.bos_id()
-    
+
     def eos_id(self) -> int:
         """Get the end of sentence token id.
 
@@ -69,7 +71,7 @@ class Tokenizer:
             return self.tokenizer.eos_token_id
         else:
             return self.tokenizer.eos_id()
-        
+
     def vocab_size(self) -> int:
         """Get the vocabulary size.
 
@@ -80,7 +82,7 @@ class Tokenizer:
             return self.tokenizer.vocab_size
         else:
             return self.tokenizer.vocab_size()
-    
+
     def decode(self, ids: List[int]) -> str:
         """Decode a list of token ids to a text.
 
@@ -91,6 +93,14 @@ class Tokenizer:
             str: decoded text
         """
         return self.tokenizer.decode(ids)
-    
-    def __call__(self, text: str):
+
+    def __call__(self, text: str) -> List[int]:
+        """Encode a text to a list of token ids.
+
+        Args:
+            text (str): text to encode
+
+        Returns:
+            List[int]: list of token ids
+        """
         return self.encode(text)
