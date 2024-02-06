@@ -22,7 +22,7 @@ python chat_llm.py \
 
 ## **RAG 📁**
 
-Before starting, you must have a JSON file with your data in it structured as the one in *rag/data/kohesio_PO_budget_0-10000.json*. 
+Before starting, you must have a JSON file with your data in it structured as the one in *rag/data/kohesio_PO_budget_0-10000.json*.
 
 Anyway, it is a simple list of dictionaries, where each dictionary has the following mandatory keys:
 
@@ -36,7 +36,7 @@ Anyway, it is a simple list of dictionaries, where each dictionary has the follo
 ]
 ```
 
-To store the data, since this is my playground, I implemented a custom vector-DB (why not? 😅). It's pretty easy and it's not fancy, but it works just fine. 
+To store the data, since this is my playground, I implemented a custom vector-DB (why not? 😅). It's pretty easy and it's not fancy, but it works just fine.
 
 By running the following command, you can store your data with the embeddings from [`bert-large-uncased`](https://huggingface.co/mlx-community/bert-large-uncased-mlx):
 
@@ -58,6 +58,8 @@ python rag_llm.py \
 
 You can apply these steps with the data in *rag/data/kohesio_PO_budget_0-10000.json* and check by yourself how it works.
 
-> [!WARNING]  
+![Alt Text](../static/rag-example.jpeg)
+
+> [!WARNING]
 > * I tested this example with a small dataset, so I don't know how it will behave with a large one. If you have any issues, please let me know.
-> * You can use any other LLM model, but you must be able to build the prompt properly. 
+> * You can use any other LLM model, but you must be able to build the prompt properly.
