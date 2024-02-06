@@ -130,3 +130,5 @@ dmypy.json
 
 *.ipynb_checkpoints
 *.DS_Store
+./utils.txt
+local/*

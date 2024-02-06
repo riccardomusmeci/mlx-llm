@@ -66,7 +66,7 @@ def hf_to_npz(
     output_path: Union[str, Path],
     n_heads: int,
     n_kv_heads: int,
-) :
+):
     """Convert a checkpoint of HuggingFace to a MLX checkpoint (npz file).
 
     Args:
