@@ -233,6 +233,12 @@ def mistral_7B_instruct_v02() -> Transformer:
     )
 
 
+def zephyr_7b_beta() -> Transformer:
+    return Transformer(
+        dim=4096, hidden_dim=14336, vocab_size=32000, n_layers=32, n_heads=32, n_kv_heads=8, head_dim=128, norm_eps=1e-5
+    )
+
+
 def openhermes_25_mistral_7B() -> Transformer:
     return Transformer(
         dim=4096, hidden_dim=14336, vocab_size=32002, n_layers=32, n_heads=32, n_kv_heads=8, head_dim=128, norm_eps=1e-5
@@ -258,7 +264,7 @@ def llama_2_7B_chat() -> Transformer:
     )
 
 
-def tiny_llama_chat_v06() -> Transformer:
+def tiny_llama_chat() -> Transformer:
     return Transformer(
         dim=2048,
         hidden_dim=5632,

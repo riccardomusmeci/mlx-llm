@@ -5,19 +5,21 @@ from .transformer import (
     llama_2_7B_chat,
     mistral_7B_instruct_v02,
     openhermes_25_mistral_7B,
-    tiny_llama_chat_v06,
+    tiny_llama_chat,
 )
 
 MODEL_ENTRYPOINTS = {
     "Phi2": phi2,
     "LLaMA-2-7B-chat": llama_2_7B_chat,
-    "TinyLlama-1.1B-Chat-v0.6": tiny_llama_chat_v06,
+    "TinyLlama-1.1B-Chat-v0.6": tiny_llama_chat,
+    "TinyLlama-1.1B-Chat-v1.0": tiny_llama_chat,
     "Mistral-7B-Instruct-v0.2": mistral_7B_instruct_v02,
     "OpenHermes-2.5-Mistral-7B": openhermes_25_mistral_7B,
     "e5-mistral-7b-instruct": e5_mistral_7b_instruct,
     "bert-base-uncased": bert_base_uncased,
     "bert-large-uncased": bert_large_uncased,
     "multilingual-e5-large": multilingual_e5_large,
+    # "zephyr-7b-beta": zephyr_7b_beta,
 }
 
 MODEL_WEIGHTS = {
@@ -29,6 +31,7 @@ MODEL_WEIGHTS = {
     "Phi2": {"repo_id": "mlx-community/phi-2", "filename": "weights.npz"},
     "bert-base-uncased": {"repo_id": "mlx-community/bert-base-uncased-mlx", "filename": "weights.npz"},
     "bert-large-uncased": {"repo_id": "mlx-community/bert-large-uncased-mlx", "filename": "weights.npz"},
+    # "zephyr-7b-beta": {"repo_id": "mlx-community/zephyr-7b-beta", "filename": "weights.npz"},
 }
 
 MODEL_TOKENIZER = {
@@ -38,7 +41,9 @@ MODEL_TOKENIZER = {
     "e5-mistral-7b-instruct": "mlx-community/e5-mistral-7b-instruct-mlx",
     "Mistral-7B-Instruct-v0.2": "mlx-community/Mistral-7B-Instruct-v0.2",
     "TinyLlama-1.1B-Chat-v0.6": "mlx-community/TinyLlama-1.1B-Chat-v0.6",
+    "TinyLlama-1.1B-Chat-v1.0": "mlx-community/TinyLlama-1.1B-Chat-v1.0-mlx",
     "bert-base-uncased": "bert-base-uncased",
     "bert-large-uncased": "bert-large-uncased",
     "multilingual-e5-large": "intfloat/multilingual-e5-large",
+    # "zephyr-7b-beta": "mlx-community/zephyr-7b-beta",
 }
