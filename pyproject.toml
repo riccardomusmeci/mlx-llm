@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mlx_llm"
-version = "0.4.1"
+version = "0.4.2"
 description = "Apple MLX library for LLM on Apple Silicon GPU"
 authors = ["Riccardo Musmeci <riccardomusmeci92@gmail.com>"]
 readme = "README.md"
@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python="^3.10"
-mlx = "0.0.10"
+mlx = "0.2.0"
 torch = "2.1.2"
 numpy = "1.26.2"
 tqdm = "*"
@@ -209,4 +209,3 @@ show_column_numbers = true
 hide_error_codes = false
 # causes mypy to treat arguments with a None default value as having an implicit Optional type.
 implicit_optional = false
-

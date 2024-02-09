@@ -52,13 +52,10 @@ benchmark = Benchmark(
 
 benchmark.start()
 # just the output dir, the file name will be benchmark.csv
-benchmark.save("PATH/TO/OUTPUT/DIR") # if benchmark.csv is already there, it will append the new results
+benchmark.save("results") # if benchmark.csv is already there, it will append the new results
 ```
 > [!WARNING]
 > Download first the model weights before running the benchmark (just use `create_model` and then run the test).
-
-> [!NOTE]
-> Send to riccardomusmeci92@gmail.com your results and I will add them to [benchmarks csv file](docs/benchmarks.csv).
 
 If you want to run benchmarks for all available LLMs:
 ```bash
@@ -67,6 +64,9 @@ cd scripts
 ```
 > [!WARNING]
 > The test will take a while since it will download all the models if not already present. Also, once test for a model is done, all the 🤗 hub cache will be deleted.
+
+> [!NOTE]
+> Run the benchmarks on your Apple Silicon device and then PR-me.
 
 
 ### **Model Embeddings ✴️**
