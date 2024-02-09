@@ -1,3 +1,0 @@
-datetime,apple_silicon,model_name,max_tokens,temperature,generation_tps [token/sec],generation_time [s],memory_usage [MB],mlx_version
-2024-02-09 14:23:31,m1_pro_32GB,TinyLlama-1.1B-Chat-v0.6,100,0.1,36.53545477698697,2.709696666000127,2732.8075,0.0.10
-2024-02-09 14:32:33,m1_pro_32GB,LLaMA-2-7B-chat,100,0.1,9.228873367192719,10.727203208999526,9767.6759375,0.0.10

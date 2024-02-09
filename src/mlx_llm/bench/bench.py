@@ -33,7 +33,7 @@ class Results:
             "temperature": [],
             "generation_tps [token/sec]": [],
             "generation_time [s]": [],
-            "memory_usage [MB]": [],
+            "memory_usage [MB/token]": [],
             "mlx_version": [],
         }
 
@@ -61,18 +61,18 @@ class Results:
         if failed:
             self.data["generation_tps [token/sec]"].append(FAIL)
             self.data["generation_time [s]"].append(FAIL)
-            self.data["memory_usage [MB]"].append(FAIL)
+            self.data["memory_usage [MB/token]"].append(FAIL)
         else:
             self.data["generation_tps [token/sec]"].append(generation_tps)
             self.data["generation_time [s]"].append(generation_time)
-            self.data["memory_usage [MB]"].append(memory_usage)
+            self.data["memory_usage [MB/token]"].append(memory_usage)
             self._log_results()
 
     def _log_results(self) -> None:
         """Log results"""
         generation_tps = self.data["generation_tps [token/sec]"][-1]
         generation_time = self.data["generation_time [s]"][-1]
-        memory_usage = self.data["memory_usage [MB]"][-1]
+        memory_usage = self.data["memory_usage [MB/token]"][-1]
         print(f"> [SUCCESS] Test on {self.data['model_name'][-1]} completed. Results recap:")
         print(f"\t> Generation TPS: {generation_tps:.2f} token/sec")
         print(f"\t> Generation time: {generation_time:.2f} s")
