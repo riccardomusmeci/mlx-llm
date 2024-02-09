@@ -8,7 +8,7 @@ def parse_args():
     parser.add_argument("--apple-silicon", type=str)
     parser.add_argument("--model-name", type=str)
     parser.add_argument("--prompt", type=str, default="What is the meaning of life?")
-    parser.add_argument("--max-tokens", type=int, default=500)
+    parser.add_argument("--max-tokens", type=int, default=300)
     parser.add_argument("--temperature", type=float, default=0.1)
     parser.add_argument("--verbose", type=str, default="false", choices=["true", "false"])
     return parser.parse_args()
@@ -26,4 +26,4 @@ if __name__ == "__main__":
         verbose=args.verbose,
     )
     benchmark.start()
-    benchmark.save("../benchmarks")
+    benchmark.save("../results")
