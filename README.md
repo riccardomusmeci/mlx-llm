@@ -36,8 +36,30 @@ from mlx_llm.model import list_models
 print(list_models())
 ```
 
+### **Benchmarks 📊**
+You can run benchmarks with `mlx-llm` to compare mlx versions, models, and devices:
+```python
+from mlx_llm.bench import Benchmark
+
+benchmark = Benchmark(
+    apple_silicon="m1_pro_32GB",
+    model_name="TinyLlama-1.1B-Chat-v0.6",
+    prompt="What is the meaning of life?",
+    max_tokens=100,
+    temperature=0.1,
+    verbose=False
+)
+
+benchmark.start()
+benchmark.save("PATH/TO/OUTPUT/DIR") # if benchmark.csv is already there, it will append the new results
+```
+
+> ::Warning:: Download first the model weights before running the benchmark.
+
+> ::Note:: Send to riccardomusmeci92@gmail.com your results and I will add them to [benchmarks csv file](docs/benchmarks.csv).
+
 ### **Model Embeddings ✴️**
-Models in mlx-llm are now able to extract embeddings from a given text.
+Models in `mlx-llm` are able to extract embeddings from a given text.
 
 ```python
 import mlx.core as mx
@@ -63,7 +85,7 @@ With `mlx-llm` you can run a variety of applications, such as:
 Below an example of how to chat with an LLM, but for more details go check the [examples](examples/README.md) documentation.
 
 ### **Chat with LLM 📱**
-mlx-llm comes with tools to easily run your LLM chat on Apple Silicon.
+`mlx-llm` comes with tools to easily run your LLM chat on Apple Silicon.
 
 You can chat with an LLM by specifying a personality and some examples of user-model interaction (this is mandatory to have a good chat experience):
 ```python
