@@ -60,6 +60,15 @@ benchmark.save("PATH/TO/OUTPUT/DIR") # if benchmark.csv is already there, it wil
 > [!NOTE]
 > Send to riccardomusmeci92@gmail.com your results and I will add them to [benchmarks csv file](docs/benchmarks.csv).
 
+If you want to run benchmarks for all available LLMs:
+```bash
+cd scripts
+./run_benchmarks.sh
+```
+> [!WARNING]
+> The test will take a while since it will download all the models if not already present. Also, once test for a model is done, all the 🤗 hub cache will be deleted.
+
+
 ### **Model Embeddings ✴️**
 Models in `mlx-llm` are able to extract embeddings from a given text.
 
