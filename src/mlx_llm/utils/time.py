@@ -38,4 +38,4 @@ class Timing(contextlib.ContextDecorator):
         """End timing and print elapsed time."""
         self.et = time.perf_counter_ns() - self.st
         if self.enabled:
-            print(f"{self.prefix} : {self.et*1e-9:.2f} s" + (self.on_exit(self.et) if self.on_exit else ""))
+            print(f"{self.prefix}: {self.et*1e-9:.2f} s" + (self.on_exit(self.et) if self.on_exit else ""))
