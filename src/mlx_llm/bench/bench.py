@@ -84,6 +84,7 @@ class Results:
         Args:
             output_dir (str): output directory
         """
+        os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, "benchmark.csv")
         if os.path.exists(output_path):
             print(f"> Results file {output_path} already exists. Appending results...")
@@ -152,6 +153,7 @@ class Benchmark:
         tokens = []
         memory_usage = []
         if self.verbose:
+            print("\n ======= \n")
             print(self.prompt, end="", flush=True)
         for i, token in enumerate(model.generate(x, self.temperature)):
             if i == 0:
@@ -168,6 +170,9 @@ class Benchmark:
                 answer = tokenizer.decode(token_list)
                 print(answer[skip:], end="", flush=True)
                 skip = len(answer)
+
+        if self.verbose:
+            print("\n ======= \n")
 
         # print stats
         token_count = len(tokens)
@@ -186,7 +191,7 @@ class Benchmark:
         try:
             print(f"\n> Running test for {self.model_name}")
 
-            model = create_model(self.model_name)
+            model = create_model(self.model_name, strict=True)
 
             tokenizer = create_tokenizer(self.model_name)
 

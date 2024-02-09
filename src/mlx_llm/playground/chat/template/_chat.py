@@ -15,6 +15,7 @@ FACTORY = {
     "Mistral-7B-Instruct-v0.2": MistralChat,
     "OpenHermes-2.5-Mistral-7B": OpenHermesChat,
     "TinyLlama-1.1B-Chat-v0.6": TinyLLaMAChat,
+    # "zephyr-7b-beta": TinyLLaMAChat,
 }
 
 
