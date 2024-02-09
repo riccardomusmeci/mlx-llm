@@ -191,7 +191,7 @@ class Benchmark:
         try:
             print(f"\n> Running test for {self.model_name}")
 
-            model = create_model(self.model_name, strict=True)
+            model = create_model(self.model_name)
 
             tokenizer = create_tokenizer(self.model_name)
 
