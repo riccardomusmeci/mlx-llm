@@ -51,12 +51,12 @@ benchmark = Benchmark(
 )
 
 benchmark.start()
+# just the output dir, the file name will be benchmark.csv
 benchmark.save("PATH/TO/OUTPUT/DIR") # if benchmark.csv is already there, it will append the new results
 ```
+> [!WARNING] Download first the model weights before running the benchmark.
 
-> ::Warning:: Download first the model weights before running the benchmark.
-
-> ::Note:: Send to riccardomusmeci92@gmail.com your results and I will add them to [benchmarks csv file](docs/benchmarks.csv).
+> [!NOTE] Send to riccardomusmeci92@gmail.com your results and I will add them to [benchmarks csv file](docs/benchmarks.csv).
 
 ### **Model Embeddings ✴️**
 Models in `mlx-llm` are able to extract embeddings from a given text.
