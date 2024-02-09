@@ -55,7 +55,7 @@ benchmark.start()
 benchmark.save("PATH/TO/OUTPUT/DIR") # if benchmark.csv is already there, it will append the new results
 ```
 > [!WARNING]
-> Download first the model weights before running the benchmark.
+> Download first the model weights before running the benchmark (just use `create_model` and then run the test).
 
 > [!NOTE]
 > Send to riccardomusmeci92@gmail.com your results and I will add them to [benchmarks csv file](docs/benchmarks.csv).
