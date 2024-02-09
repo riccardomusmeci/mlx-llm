@@ -4,6 +4,7 @@ import mlx.core as mx
 import mlx.nn as nn
 from huggingface_hub import hf_hub_download
 from mlx.utils import tree_flatten, tree_unflatten
+from safetensors.numpy import load_file
 
 from ._registry import MODEL_WEIGHTS
 
@@ -26,7 +27,10 @@ def load_weights(model: nn.Module, weights: str, strict: bool = True, verbose: b
     if verbose:
         print(f"> Loading weights from {weights}")
 
-    weights = list(mx.load(weights).items())
+    if weights.endswith(".npz"):
+        weights = list(mx.load(weights).items())
+    elif weights.endswith(".safetensors"):
+        weights = list(load_file(weights).items())
 
     new_state = dict(weights)
     # create a torch-like state dict { layer_name: weights }
@@ -88,7 +92,7 @@ def load_weights_from_hf(model: nn.Module, model_name: str, strict: bool = True,
 
     Args:
         model (nn.Module): an LLM model
-        model_name (str): model namw
+        model_name (str): model name
         strict (bool, optional): whether to strictly enforce that the keys in weights match the keys of the model. Defaults to True.
         verbose (bool, optional): whether to print information during loading. Defaults to False.
 
