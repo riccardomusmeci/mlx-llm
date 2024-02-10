@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mlx_llm"
-version = "0.4.2"
+version = "0.5.0"
 description = "Apple MLX library for LLM on Apple Silicon GPU"
 authors = ["Riccardo Musmeci <riccardomusmeci92@gmail.com>"]
 readme = "README.md"
