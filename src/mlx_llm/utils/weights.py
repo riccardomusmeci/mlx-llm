@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from typing import Generator, List, Union
 
+import mlx.core as mx
 import numpy as np
 import torch
 from safetensors import safe_open
@@ -26,9 +27,7 @@ def smart_load(ckpt_paths: List[Union[str, Path]]) -> Generator:
     for ckpt_path in ckpt_paths:
         with Timing(f"> Loading checkpoint from {ckpt_path}.."):
             if ckpt_path.endswith(".safetensors"):
-                state_dict = {}
-                with safe_open(ckpt_path, framework="pt", device="cpu") as state:
-                    state_dict = {k: state.get_tensor(k) for k in state.keys()}
+                state_dict = mx.load(ckpt_path)
             else:
                 state_dict = torch.load(ckpt_path, map_location="cpu")
         yield state_dict
@@ -141,6 +140,7 @@ def hf_to_npz(
                 w = permute(w, n_heads)
             elif "k_proj" in k:
                 w = permute(w, n_kv_heads)
+        print(k, w.dtype)
         converted_state_dict[keymap[k]] = w.to(torch.float16).numpy()
 
     del state_dict  # to save up some memory
