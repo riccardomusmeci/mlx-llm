@@ -1,7 +1,7 @@
 import gc
 import os
 import time
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import mlx.core as mx
 import mlx.nn as nn
@@ -103,6 +103,8 @@ class Benchmark:
     Args:
         apple_silicon (str): Apple silicon version (e.g. m1_pro, m1_max, etc.)
         model_name (str): model name to save benchmarking results
+        quantize (bool): whether to quantize the model
+        weights (Union[bool, str], optional): if True, load pretrained weights from HF. If str, load weights from the given path. Defaults to True.
         prompt (str, optional): prompt for the model. Defaults to "What is the meaning of life?".
         max_tokens (int, optional): maximum tokens to generate. Defaults to 100.
         temperature (float, optional): temperature for generation. Defaults to 0.1.
@@ -113,6 +115,8 @@ class Benchmark:
         self,
         apple_silicon: str,
         model_name: str,
+        quantized: bool,
+        weights: Union[bool, str] = True,
         prompt: str = "What is the meaning of life?",
         max_tokens: int = 100,
         temperature: float = 0.1,
@@ -120,6 +124,8 @@ class Benchmark:
     ) -> None:
         self.apple_silicon = apple_silicon
         self.model_name = model_name
+        self.quantized = quantized
+        self.weights = weights
         self.prompt = prompt
         self.max_tokens = max_tokens
         self.temperature = temperature
@@ -191,7 +197,7 @@ class Benchmark:
         try:
             print(f"\n> Running test for {self.model_name}")
 
-            model = create_model(self.model_name)
+            model = create_model(self.model_name, weights=self.weights, quantized=self.quantized)
 
             tokenizer = create_tokenizer(self.model_name)
 
