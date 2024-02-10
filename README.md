@@ -37,7 +37,14 @@ print(list_models())
 ```
 
 ### **Quantization 📉**
-You can quantize a model with `mlx-llm`:
+
+Currenlty, `mlx-llm` supports only OpenHermes-2.5-Mistral-7B-4bit model from HF space. To use it:
+```python
+from mlx_llm.model import create_model
+model = create_model("OpenHermes-2.5-Mistral-7B-4bit", quantized=True)
+```
+For the other supported models, use the `quantize` function for the model.
+
 ```python
 from mlx_llm.model import create_model, quantize, save_weights
 
@@ -47,12 +54,7 @@ model = create_model("TinyLlama-1.1B-Chat-v0.6")
 model = quantize(model, group_size=64, bits=4)
 # save the model
 save_weights(model, "TinyLlama-1.1B-Chat-v0.6-4bit.npz")
-
 ```
-
-quantize("TinyLlama-1.1B-Chat-v0.6", "tiny-llama-1.1b-chat-v0.6-quantized")
-```
-
 
 ### **Benchmarks 📊**
 You can run benchmarks with `mlx-llm` to compare mlx versions, models, and devices:
@@ -62,6 +64,8 @@ from mlx_llm.bench import Benchmark
 benchmark = Benchmark(
     apple_silicon="m1_pro_32GB",
     model_name="TinyLlama-1.1B-Chat-v0.6",
+    quantized=True,
+    weights="path/to/weights_4bit.npz",
     prompt="What is the meaning of life?",
     max_tokens=100,
     temperature=0.1,
