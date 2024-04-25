@@ -200,3 +200,42 @@ def mistral_7b_instruct_v02() -> Tuple[Transformer, ModelConfig]:
     config = ModelConfig(hf=HFConfig(repo_id="mistralai/Mistral-7B-Instruct-v0.2"), converter=mistral_to_mlxllm)
 
     return model, config
+
+@register_model("openhermes_2.5_mistral_7b")
+def openhermes_25_mistral_7b() -> Tuple[Transformer, ModelConfig]:
+    model = Transformer(
+        dim=4096,
+        hidden_dim=14336,
+        vocab_size=32000,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=8,
+        norm_eps=1e-5,
+        rope_theta=10000.0,
+        rope_traditional=False,
+    )
+
+    config = ModelConfig(hf=HFConfig(repo_id="teknium/OpenHermes-2.5-Mistral-7B"), converter=mistral_to_mlxllm)
+
+    return model, config
+
+@register_model("tiny_llama_1.1B_chat_v1.0")
+def tiny_llama_11B_chat_v10() -> Tuple[Transformer, ModelConfig]:
+    model = Transformer(
+        dim=2048,
+        hidden_dim=5632,
+        vocab_size=32000,
+        n_layers=22,
+        n_heads=32,
+        n_kv_heads=4,
+        norm_eps=1e-5,
+        rope_theta=10000.0,
+        rope_traditional=False,
+    )
+
+    config = ModelConfig(
+        hf=HFConfig(repo_id="TinyLlama/TinyLlama-1.1B-Chat-v1.0"), 
+        converter=llama_to_mlxllm
+    )
+
+    return model, config
