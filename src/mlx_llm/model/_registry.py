@@ -201,6 +201,7 @@ def mistral_7b_instruct_v02() -> Tuple[Transformer, ModelConfig]:
 
     return model, config
 
+
 @register_model("openhermes_2.5_mistral_7b")
 def openhermes_25_mistral_7b() -> Tuple[Transformer, ModelConfig]:
     model = Transformer(
@@ -219,6 +220,7 @@ def openhermes_25_mistral_7b() -> Tuple[Transformer, ModelConfig]:
 
     return model, config
 
+
 @register_model("tiny_llama_1.1B_chat_v1.0")
 def tiny_llama_11B_chat_v10() -> Tuple[Transformer, ModelConfig]:
     model = Transformer(
@@ -233,9 +235,6 @@ def tiny_llama_11B_chat_v10() -> Tuple[Transformer, ModelConfig]:
         rope_traditional=False,
     )
 
-    config = ModelConfig(
-        hf=HFConfig(repo_id="TinyLlama/TinyLlama-1.1B-Chat-v1.0"), 
-        converter=llama_to_mlxllm
-    )
+    config = ModelConfig(hf=HFConfig(repo_id="TinyLlama/TinyLlama-1.1B-Chat-v1.0"), converter=llama_to_mlxllm)
 
     return model, config
