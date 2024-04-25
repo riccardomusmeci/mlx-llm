@@ -158,8 +158,8 @@ def generate(
     skip = 0
     tokens = []
 
-    print(f"Prompt: {prompt}", end="", flush=True)
-    print("Answer: ", end="", flush=True)
+    print(prompt, end="", flush=True)
+    #print("Answer: ", end="", flush=True)
 
     for _i, token in enumerate(model.generate(x, temperature)):
         if _i == 0:

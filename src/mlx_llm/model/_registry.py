@@ -136,6 +136,7 @@ def mistral_7b_instruct_v02() -> Tuple[Transformer, ModelConfig]:
         n_kv_heads=8,
         norm_eps=1e-5,
         rope_theta=10000.0,
+        rope_traditional=False,
     )
 
     config = ModelConfig(hf=HFConfig(repo_id="mistralai/Mistral-7B-Instruct-v0.2"), converter=mistral_to_mlxllm)
