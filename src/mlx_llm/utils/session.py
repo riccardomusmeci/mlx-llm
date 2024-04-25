@@ -11,6 +11,8 @@ class Session:
 
     def __init__(self, questions: List[str] = [], answers: List[str] = []) -> None:  # noqa: D107  # noqa: B006
         self.questions, self.answers = self._load(questions, answers)
+        self.q_reset_len = len(self.question)
+        self.a_reset_len = len(self.answers)
 
     def _load(self, questions: List[str], answers: List[str]) -> Tuple[List[str], List[str]]:
         """Load questions and answers.
@@ -46,8 +48,8 @@ class Session:
 
     def reset(self) -> None:
         """Reset conversation."""
-        self.questions = []
-        self.answers = []
+        self.questions = self.questions[: self.q_reset_len]
+        self.answers = self.answers[: self.a_reset_len]
 
     def add_question(self, question: str) -> None:
         """Add question to conversation.
