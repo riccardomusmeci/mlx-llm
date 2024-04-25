@@ -1,15 +1,14 @@
-from typing import Optional, Tuple, Union, Callable
+import glob
+import os
+from typing import Callable, Optional, Tuple, Union
 
 import mlx.core as mx
 import mlx.nn as nn
-import os
-import glob
-
 from transformers import AutoTokenizer
 
-from ._registry import MODEL_ENTRYPOINTS
-from ._utils import load_weights, quantize, apply_weights
 from ..utils.hf import download_from_hf
+from ._registry import MODEL_ENTRYPOINTS
+from ._utils import apply_weights, load_weights, quantize
 
 __all__ = ["list_models", "create_model"]
 
@@ -60,21 +59,16 @@ def create_model(
 
     if model_name not in MODEL_ENTRYPOINTS:
         raise ValueError(f"Unknown model name: {model_name}.")
-    
+
     # model -> Transformer
     # config -> ModelConfig
     model, config = MODEL_ENTRYPOINTS[model_name]()
 
     if config.quantize is not None:
         model = quantize(model, group_size=config.quantize.group_size, bits=config.quantize.bits)
-    
+
     if isinstance(weights, str) and weights.endswith(".safetensors"):
-        model = load_weights(
-            model=model, 
-            weights=weights, 
-            strict=strict, 
-            verbose=verbose
-        )
+        model = load_weights(model=model, weights=weights, strict=strict, verbose=verbose)
     elif isinstance(weights, str) and weights.startswith("hf://"):
         model_path = download_from_hf(
             repo_id=weights.replace("hf://", ""),
@@ -83,12 +77,10 @@ def create_model(
         if converter is not None:
             weights = converter(weights)
             model = apply_weights(model, weights)
-            
+
     elif isinstance(weights, bool) and weights is True:
         model_path = download_from_hf(
-            repo_id=config.hf.repo_id,
-            revision=config.hf.revision,
-            filename=config.hf.filename
+            repo_id=config.hf.repo_id, revision=config.hf.revision, filename=config.hf.filename
         )
         if model_path.endswith(".safetensors"):
             weights = model_path
@@ -96,8 +88,8 @@ def create_model(
             weights = glob.glob(os.path.join(model_path, "*.safetensors"))
         if config.converter is not None:
             weights = config.converter(weights)
-            model = apply_weights(model, weights)        
-        
+            model = apply_weights(model, weights)
+
     return model
 
 
@@ -113,10 +105,8 @@ def create_tokenizer(model_name: str) -> AutoTokenizer:
     Returns:
         AutoTokenizer: tokenizer
     """
-    if model_name not in MODEL_CONFIG:
+    if model_name not in MODEL_ENTRYPOINTS:
         raise ValueError(f"Unknown model name: {model_name}.")
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_CONFIG[model_name].repo_id, legacy=True)
+    _, config = MODEL_ENTRYPOINTS[model_name]()
+    tokenizer = AutoTokenizer.from_pretrained(config.hf.repo_id, legacy=True)
     return tokenizer
-
-
-

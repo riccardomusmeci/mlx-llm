@@ -1,11 +1,9 @@
-from huggingface_hub import hf_hub_download, snapshot_download
 from typing import Optional
 
-def download_from_hf(
-    repo_id: str, 
-    revision: Optional[str] = None, 
-    filename: Optional[str] = None
-) -> str:
+from huggingface_hub import hf_hub_download, snapshot_download
+
+
+def download_from_hf(repo_id: str, revision: Optional[str] = None, filename: Optional[str] = None) -> str:
     """Download entire repo from HuggingFace Hub.
 
     Args:
@@ -30,16 +28,9 @@ def download_from_hf(
                 resume_download=True,
             )
         else:
-            model_path = hf_hub_download(
-                repo_id=repo_id, 
-                repo_type="model", 
-                filename=filename
-            )
+            model_path = hf_hub_download(repo_id=repo_id, repo_type="model", filename=filename)
     except Exception as e:
         print(f"[ERROR] Downloading repo from HuggingFace Hub failed: {e}.")
         raise e
 
     return model_path
-    
-
-    

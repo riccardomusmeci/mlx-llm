@@ -1,12 +1,11 @@
-from ..utils.weights import weights_to_mlx
-from typing import List, Dict
+from typing import Dict, List
+
 import numpy as np
 
+from ..utils.weights import weights_to_mlx
 
-def llama3_to_mlxllm(
-    weights_paths: List[str],
-    verbose: bool = False
-) -> Dict[str, np.array]:
+
+def llama3_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str, np.array]:
     """Convert LLaMA 3 8B weights to MLX format.
 
     Args:
@@ -16,11 +15,11 @@ def llama3_to_mlxllm(
     Returns:
         Dict[str, np.array]: a dict of weights in MLX format
     """
-    
+
     model_weights = {}
     weights = weights_to_mlx(weights_paths)
     if verbose:
-        print(f"Converting LLaMA 3 weights to mlx-llm format.")
+        print("Converting LLaMA 3 weights to mlx-llm format.")
     for k, w in weights.items():
         if k.startswith("model."):
             k = k.replace("model.", "")
@@ -44,10 +43,7 @@ def llama3_to_mlxllm(
     return model_weights
 
 
-def phi3_to_mlxllm(
-    weights_paths: List[str],
-    verbose: bool = False
-) -> Dict[str, np.array]:
+def phi3_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str, np.array]:
     """Convert original Phi3 weights to MLX format.
 
     Args:
@@ -60,7 +56,7 @@ def phi3_to_mlxllm(
     model_weights = {}
     weights = weights_to_mlx(weights_paths)
     if verbose:
-        print(f"Converting LLaMA 3 weights to mlx-llm format.")
+        print("Converting LLaMA 3 weights to mlx-llm format.")
     for k, w in weights.items():
         if k.startswith("model."):
             k = k.replace("model.", "")
@@ -102,10 +98,7 @@ def phi3_to_mlxllm(
     return model_weights
 
 
-def mistral_to_mlxllm(
-    weights_paths: List[str],
-    verbose: bool = False
-) -> Dict[str, np.array]:
+def mistral_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str, np.array]:
     """Convert Mistral weights to MLX format.
 
     Args:
@@ -118,7 +111,7 @@ def mistral_to_mlxllm(
     model_weights = {}
     weights = weights_to_mlx(weights_paths)
     if verbose:
-        print(f"Converting Mistral weights to mlx-llm format.")
+        print("Converting Mistral weights to mlx-llm format.")
     for k, w in weights.items():
         if k.startswith("model."):
             k = k.replace("model.", "")

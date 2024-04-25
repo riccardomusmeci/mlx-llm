@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Generator, List, Union, Dict
+from typing import Dict, Generator, List, Union
 
 import mlx.core as mx
 import numpy as np
@@ -57,7 +57,7 @@ def weights_to_mlx(
     Args:
         ckpt_paths (Union[List[str], str]): path to checkpoint
         show_kv (bool, optional): whether to show key-value pairs. Defaults to False.
-        
+
     Returns:
         Dict[str, np.ndarray]: MLX weights dict (key, np.ndarray)
     """

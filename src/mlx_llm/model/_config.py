@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple, Callable
+from typing import Callable, Dict, Optional, Tuple
 
 
 @dataclass
@@ -8,11 +8,13 @@ class HFConfig:
     revision: Optional[str] = None
     filename: Optional[str] = None
 
+
 @dataclass
 class QuantizeConfig:
     group_size: int
     bits: int
-    
+
+
 @dataclass
 class ModelConfig:
     hf: HFConfig

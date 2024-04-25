@@ -1,15 +1,13 @@
 import os
+import time
+from typing import Dict, List, Optional, Tuple, Union
 
 import mlx.core as mx
 import mlx.nn as nn
 import numpy as np
-import time
-
 from mlx.utils import tree_flatten, tree_unflatten
-
 from transformers import AutoTokenizer
 
-from typing import Dict, List, Optional, Tuple, Union
 
 def apply_weights(
     model: nn.Module,
@@ -27,17 +25,15 @@ def apply_weights(
     model.update(tree_unflatten(list(weights.items())))
     return model
 
+
 def load_weights(
-    model: nn.Module, 
-    weights: Union[str, List[str]], 
-    strict: bool = True, 
-    verbose: bool = False
+    model: nn.Module, weights: Union[str, List[str]], strict: bool = True, verbose: bool = False
 ) -> nn.Module:
     """Load weights from a given path.
 
     Args:
         model (nn.Module): a LLM model
-        weights (str): path to weights
+        weights (Union[str, List[str]]): path to weights file or list of paths to weights files
         strict (bool, optional): whether to strictly enforce that the keys in weights match the keys of the model. Defaults to True.
         verbose (bool, optional): whether to print information during loading. Defaults to False.
 
@@ -45,21 +41,22 @@ def load_weights(
         nn.Module: an nn.Module with loaded weights
     """
 
-    assert os.path.exists(weights), f"Weights path {weights} does not exist."
-
     if verbose:
         print(f"\n> Loading weights from {weights}")
-        
-    # loading weights 
+
+    # loading weights
     if isinstance(weights, str):
         weights = [weights]
+    for weight in weights:
+        assert os.path.exists(weight), f"Weights path {weight} does not exist."
+        
     pretrained_weights = {}
     for weight in weights:
         pretrained_weights.update(dict(list(mx.load(weight).items())))
-    
+
     # create a torch-like state dict { layer_name: weights }
     model_weights = dict(tree_flatten(model.parameters()))
-    
+
     if strict:
         if len(model_weights) != len(pretrained_weights):
             raise ValueError(f"Expected {len(model_weights)} keys, got {len(pretrained_weights)}")
@@ -69,7 +66,7 @@ def load_weights(
         if set(pretrained_weights.keys()) != set(model_weights.keys()):
             diff = set(pretrained_weights.keys()) ^ set(model_weights.keys())
             raise ValueError(f"Found pretrained keys not in model weights: {diff}")
-            
+
     for k, w in model_weights.items():
         if k not in pretrained_weights:
             if strict:
@@ -87,9 +84,10 @@ def load_weights(
                     print(f"> [WARNING] Expected shape {w.shape} for key {k}, got {pretrained_w.shape}")
                     pretrained_w = w
             model_weights[k] = pretrained_w
-            
+
     model = apply_weights(model, model_weights)
     return model
+
 
 def get_weights(model: nn.Module) -> dict:
     """Return the model weights dict.
@@ -143,8 +141,8 @@ def generate(
     prompt: str,
     max_tokens: int = 100,
     temperature: float = 0.1,
-    stats: bool = True
-):
+    stats: bool = True,
+) -> None:
     """Generate text from a given prompt.
 
     Args:
@@ -161,11 +159,11 @@ def generate(
     tokens = []
 
     print(f"Prompt: {prompt}", end="", flush=True)
-    print(f"Answer: ", end="", flush=True)
-    
+    print("Answer: ", end="", flush=True)
+
     for _i, token in enumerate(model.generate(x, temperature)):
         if _i == 0:
-            tick = time.time()        
+            tick = time.time()
         tokens.append(token.item())  # actually compute the token
         if len(tokens) >= max_tokens:
             break

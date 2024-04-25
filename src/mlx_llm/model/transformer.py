@@ -13,6 +13,7 @@ class RMSNorm(nn.Module):
     def __call__(self, x):
         return mx.fast.rms_norm(x, 1.0 + self.weight, self.eps)
 
+
 class Attention(nn.Module):
     """Attention module
 
@@ -25,11 +26,12 @@ class Attention(nn.Module):
         rope_theta (float, optional): RoPE theta. Defaults to 1000.
         rope_scaling (Optional[Dict[str, Union[float, str]]], optional): RoPE scaling. Defaults to None.
     """
+
     def __init__(
-        self, 
-        dim: int, 
-        n_heads: int, 
-        n_kv_heads: int, 
+        self,
+        dim: int,
+        n_heads: int,
+        n_kv_heads: int,
         head_dim: Optional[int] = None,
         rope_traditional: bool = True,
         rope_theta: float = 1000,
@@ -39,9 +41,9 @@ class Attention(nn.Module):
 
         self.n_heads = n_heads
         self.n_kv_heads = n_kv_heads
-        
+
         head_dim = dim // n_heads if head_dim is None else head_dim
-        
+
         self.scale = head_dim**-0.5
 
         self.q_proj = nn.Linear(dim, n_heads * head_dim, bias=False)
@@ -49,12 +51,8 @@ class Attention(nn.Module):
         self.v_proj = nn.Linear(dim, n_kv_heads * head_dim, bias=False)
         self.o_proj = nn.Linear(n_heads * head_dim, dim, bias=False)
 
-        rope_scale = (
-            1 / rope_scaling["factor"]
-            if rope_scaling is not None and rope_scaling["type"] == "linear"
-            else 1
-        )
-        
+        rope_scale = 1 / rope_scaling["factor"] if rope_scaling is not None and rope_scaling["type"] == "linear" else 1
+
         self.rope = nn.RoPE(
             dims=head_dim,
             traditional=rope_traditional,
@@ -79,7 +77,7 @@ class Attention(nn.Module):
             Tuple[mx.array, Tuple[mx.array, mx.array]]: output and kv-cache
         """
         B, L, D = x.shape
-        
+
         queries, keys, values = self.q_proj(x), self.k_proj(x), self.v_proj(x)
 
         # Prepare the queries, keys and values for the attention computation
@@ -96,10 +94,8 @@ class Attention(nn.Module):
         else:
             queries = self.rope(queries)
             keys = self.rope(keys)
-        
-        output = mx.fast.scaled_dot_product_attention(
-            queries, keys, values, scale=self.scale, mask=mask
-        )
+
+        output = mx.fast.scaled_dot_product_attention(queries, keys, values, scale=self.scale, mask=mask)
         output = output.transpose(0, 2, 1, 3).reshape(B, L, -1)
         return self.o_proj(output), (keys, values)
 
@@ -111,6 +107,7 @@ class MLP(nn.Module):
         dim (int): model dimension
         hidden_dim (int): hidden dimension
     """
+
     def __init__(self, dim: int, hidden_dim: int):
         super().__init__()
 
@@ -127,9 +124,7 @@ class MLP(nn.Module):
         Returns:
             mx.array: output
         """
-        return self.down_proj(
-            nn.silu(self.gate_proj(x)) * self.up_proj(x)
-        )
+        return self.down_proj(nn.silu(self.gate_proj(x)) * self.up_proj(x))
 
 
 class TransformerBlock(nn.Module):
@@ -146,6 +141,7 @@ class TransformerBlock(nn.Module):
         rope_theta (float, optional): RoPE theta. Defaults to 1000.
         rope_scaling (Optional[Dict[str, Union[float, str]]], optional): RoPE scaling. Defaults to None.
     """
+
     def __init__(
         self,
         dim: int,
@@ -162,9 +158,9 @@ class TransformerBlock(nn.Module):
         self.n_heads = n_heads
         self.dim = dim
         self.attention = Attention(
-            dim=dim, 
-            n_heads=n_heads, 
-            n_kv_heads=n_kv_heads, 
+            dim=dim,
+            n_heads=n_heads,
+            n_kv_heads=n_kv_heads,
             head_dim=head_dim,
             rope_traditional=rope_traditional,
             rope_theta=rope_theta,
@@ -172,7 +168,7 @@ class TransformerBlock(nn.Module):
         )
         self.mlp = MLP(dim=dim, hidden_dim=hidden_dim)
         self.attention_norm = nn.RMSNorm(dim, eps=norm_eps)
-        #self.attention_norm = RMSNorm(dim, eps=norm_eps)
+        # self.attention_norm = RMSNorm(dim, eps=norm_eps)
         self.mlp_norm = nn.RMSNorm(dim, eps=norm_eps)
         # self.mlp_norm = RMSNorm(dim, eps=norm_eps)
 
@@ -192,11 +188,7 @@ class TransformerBlock(nn.Module):
         Returns:
             Tuple[mx.array, Tuple[mx.array, mx.array]]: output and key-value cache
         """
-        r, kv_cache = self.attention(
-            x=self.attention_norm(x), 
-            mask=mask, 
-            kv_cache=kv_cache
-        )
+        r, kv_cache = self.attention(x=self.attention_norm(x), mask=mask, kv_cache=kv_cache)
         h = x + r
         r = self.mlp(self.mlp_norm(h))
         out = h + r
@@ -220,6 +212,7 @@ class Transformer(nn.Module):
         rope_scaling (Optional[Dict[str, Union[float, str]]], optional): RoPE scaling. Defaults to None.
         embed_as_head (bool, optional): whether to embed as head (for Gemma models). Defaults to False.
     """
+
     def __init__(
         self,
         dim: int,
@@ -264,10 +257,7 @@ class Transformer(nn.Module):
             self.head = None
 
     def embed(
-        self, 
-        x: mx.array, 
-        kv_cache: Optional[List[Tuple[mx.array, mx.array]]], 
-        norm: bool = False
+        self, x: mx.array, kv_cache: Optional[List[Tuple[mx.array, mx.array]]], norm: bool = False
     ) -> Tuple[mx.array, Optional[List[Tuple[mx.array, mx.array]]]]:
         """Compute embedding for the input tokens.
 
@@ -293,11 +283,9 @@ class Transformer(nn.Module):
             h, kv_cache[e] = layer(x=h, mask=mask, kv_cache=kv_cache[e])
 
         return self.norm(h) if norm else h, kv_cache
-    
+
     def __call__(
-        self, 
-        x: mx.array, 
-        kv_cache: Optional[List[Tuple[mx.array, mx.array]]] = None
+        self, x: mx.array, kv_cache: Optional[List[Tuple[mx.array, mx.array]]] = None
     ) -> Tuple[mx.array, List[Tuple[mx.array, mx.array]]]:
         """Forward pass
 
