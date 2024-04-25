@@ -1,7 +1,7 @@
 from typing import Callable, Dict, Optional, Tuple
 
 from ._config import HFConfig, ModelConfig, QuantizeConfig
-from ._convert import llama3_to_mlxllm, mistral_to_mlxllm, phi3_to_mlxllm
+from ._convert import llama_to_mlxllm, mistral_to_mlxllm, phi3_to_mlxllm
 from .transformer import Transformer
 
 MODEL_ENTRYPOINTS = {}
@@ -27,6 +27,62 @@ def register_model(name: Optional[str] = None) -> Callable:
     return wrapper
 
 
+@register_model("llama_2_7b_chat")
+def llama_2_7b_chat() -> Tuple[Transformer, ModelConfig]:
+    """Create a LLaMA 2 7B chat model.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=4096,
+        hidden_dim=11008,
+        vocab_size=32000,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=32,
+        norm_eps=1e-5,
+        rope_theta=10000.0,
+        rope_traditional=False,
+    )
+
+    config = ModelConfig(
+        hf=HFConfig(
+            repo_id="meta-llama/Llama-2-7b-chat-hf",
+        ),
+        converter=llama_to_mlxllm,
+    )
+    return model, config
+
+
+@register_model("llama_2_7b")
+def llama_2_7b() -> Tuple[Transformer, ModelConfig]:
+    """Create a LLaMA 2 7B chat model.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=4096,
+        hidden_dim=11008,
+        vocab_size=32000,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=32,
+        norm_eps=1e-5,
+        rope_theta=10000.0,
+        rope_traditional=False,
+    )
+
+    config = ModelConfig(
+        hf=HFConfig(
+            repo_id="meta-llama/Llama-2-7b",
+        ),
+        converter=llama_to_mlxllm,
+    )
+    return model, config
+
+
 @register_model("llama_3_8b")
 def llama_3_8b() -> Tuple[Transformer, ModelConfig]:
     """Create a LLaMA 3 8B model.
@@ -43,13 +99,14 @@ def llama_3_8b() -> Tuple[Transformer, ModelConfig]:
         n_kv_heads=8,
         norm_eps=1e-5,
         rope_theta=500000.0,
+        rope_traditional=True,
     )
 
     config = ModelConfig(
         hf=HFConfig(
             repo_id="meta-llama/Meta-Llama-3-8B",
         ),
-        converter=llama3_to_mlxllm,
+        converter=llama_to_mlxllm,
     )
     return model, config
 
@@ -70,13 +127,14 @@ def llama_3_8b_instruct() -> Tuple[Transformer, ModelConfig]:
         n_kv_heads=8,
         norm_eps=1e-5,
         rope_theta=500000.0,
+        rope_traditional=True,
     )
 
     config = ModelConfig(
         hf=HFConfig(
             repo_id="meta-llama/Meta-Llama-3-8B-Instruct",
         ),
-        converter=llama3_to_mlxllm,
+        converter=llama_to_mlxllm,
     )
     return model, config
 
