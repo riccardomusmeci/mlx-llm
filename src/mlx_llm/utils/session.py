@@ -1,5 +1,6 @@
 from typing import List, Optional, Tuple, Dict
 
+
 class Session:
     """Session class.
 
@@ -8,16 +9,10 @@ class Session:
         answers (List[str], optional): answers. Defaults to [].
     """
 
-    def __init__(  # noqa: D107
-        self, 
-        questions: List[str] = [], 
-        answers: List[str] = []  # noqa: B006
-    ) -> None:
+    def __init__(self, questions: List[str] = [], answers: List[str] = []) -> None:  # noqa: D107  # noqa: B006
         self.questions, self.answers = self._load(questions, answers)
 
-    def _load(
-        self, questions: List[str], answers: List[str]
-    ) -> Tuple[List[str], List[str]]:
+    def _load(self, questions: List[str], answers: List[str]) -> Tuple[List[str], List[str]]:
         """Load questions and answers.
 
         Args:
@@ -27,25 +22,25 @@ class Session:
         Returns:
             Tuple[List[str], List[str]]: valid questions and answers
         """
-        assert isinstance(
-            questions, list
-        ), f"questions must be a list. Got {type(questions)} instead."
+        assert isinstance(questions, list), f"questions must be a list. Got {type(questions)} instead."
 
-        assert isinstance(
-            answers, list
-        ), f"answers must be a list. Got {type(answers)} instead."
+        assert isinstance(answers, list), f"answers must be a list. Got {type(answers)} instead."
 
         if len(questions) < len(answers):
-            print(f"[WARNING] Found {len(answers) - len(questions)} more answers than questions. Extra {len(answers) - len(questions)} answers will be discarded.")
+            print(
+                f"[WARNING] Found {len(answers) - len(questions)} more answers than questions. Extra {len(answers) - len(questions)} answers will be discarded."
+            )
             up_to = len(questions)
         elif len(answers) < len(questions) - 1:
-            print(f"[WARNING] Found {len(questions) - len(answers)} more questions than answers. Extra {len(questions) - len(answers) - 1} questions will be discarded.")
+            print(
+                f"[WARNING] Found {len(questions) - len(answers)} more questions than answers. Extra {len(questions) - len(answers) - 1} questions will be discarded."
+            )
             up_to = len(answers) + 1
         else:
             up_to = len(questions)
 
         questions = questions[:up_to]
-        answers = answers[:up_to - 1] if len(answers) == up_to - 1 else answers[:up_to]
+        answers = answers[: up_to - 1] if len(answers) == up_to - 1 else answers[:up_to]
 
         return questions, answers
 
@@ -64,9 +59,7 @@ class Session:
             ValueError: if there is nos answer for the previous question
         """
         if len(self.questions) != len(self.answers):
-            raise ValueError(
-                "Cannot add question. There is no answer for the previous question."
-            )
+            raise ValueError("Cannot add question. There is no answer for the previous question.")
         self.questions.append(question)
 
     def add_answer(self, answer: str) -> None:
@@ -106,9 +99,7 @@ class Session:
             str: conversation
         """
 
-        assert isinstance(
-            last_k, int
-        ), f"last_k must be an int. Got {type(last_k)} instead."
+        assert isinstance(last_k, int), f"last_k must be an int. Got {type(last_k)} instead."
 
         if last_k > len(self.history):
             print(

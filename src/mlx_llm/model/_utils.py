@@ -49,7 +49,7 @@ def load_weights(
         weights = [weights]
     for weight in weights:
         assert os.path.exists(weight), f"Weights path {weight} does not exist."
-        
+
     pretrained_weights = {}
     for weight in weights:
         pretrained_weights.update(dict(list(mx.load(weight).items())))
@@ -159,7 +159,6 @@ def generate(
     tokens = []
 
     print(prompt, end="", flush=True)
-    #print("Answer: ", end="", flush=True)
 
     for _i, token in enumerate(model.generate(x, temperature)):
         if _i == 0:

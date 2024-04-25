@@ -5,7 +5,7 @@ import numpy as np
 from ..utils.weights import weights_to_mlx
 
 
-def llama3_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str, np.array]:
+def llama_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str, np.array]:
     """Convert LLaMA 3 8B weights to MLX format.
 
     Args:
@@ -19,12 +19,14 @@ def llama3_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[st
     model_weights = {}
     weights = weights_to_mlx(weights_paths)
     if verbose:
-        print("Converting LLaMA 3 weights to mlx-llm format.")
+        print("Converting LLaMA weights to mlx-llm format.")
     for k, w in weights.items():
         if k.startswith("model."):
             k = k.replace("model.", "")
         k_split = k.split(".")
         if "layers" in k_split:
+            if "rotary_emb" in k_split:
+                continue
             if "self_attn" in k_split:
                 # ['layers', '0', 'attention', 'q_proj' | 'k_proj' | 'v_proj' | 'out_proj', weight]
                 model_k = f"{k_split[0]}.{k_split[1]}.attention.{k_split[3]}.{k_split[4]}"
