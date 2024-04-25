@@ -4,16 +4,6 @@ import mlx.core as mx
 import mlx.nn as nn
 
 
-class RMSNorm(nn.Module):
-    def __init__(self, dims: int, eps: float = 1e-5):
-        super().__init__()
-        self.weight = mx.ones((dims,))
-        self.eps = eps
-
-    def __call__(self, x):
-        return mx.fast.rms_norm(x, 1.0 + self.weight, self.eps)
-
-
 class Attention(nn.Module):
     """Attention module
 
@@ -22,7 +12,7 @@ class Attention(nn.Module):
         n_heads (int): number of attention heads
         n_kv_heads (int): number of key-value heads
         head_dim (Optional[int]): head dimension. If None, it is set to dim // n_heads. Defaults to None.
-        rope_traditional (bool, optional): whether to use traditional RoPE. Defaults to True.
+        rope_traditional (bool, optional): whether to use traditional RoPE. Defaults to False.
         rope_theta (float, optional): RoPE theta. Defaults to 1000.
         rope_scaling (Optional[Dict[str, Union[float, str]]], optional): RoPE scaling. Defaults to None.
     """
@@ -33,7 +23,7 @@ class Attention(nn.Module):
         n_heads: int,
         n_kv_heads: int,
         head_dim: Optional[int] = None,
-        rope_traditional: bool = True,
+        rope_traditional: bool = False,
         rope_theta: float = 1000,
         rope_scaling: Optional[Dict[str, Union[float, str]]] = None,
     ):
@@ -137,7 +127,7 @@ class TransformerBlock(nn.Module):
         hidden_dim (int): hidden dimension
         norm_eps (float): normalization epsilon
         head_dim (Optional[int], optional): head dimension. Defaults to None.
-        rope_traditional (bool, optional): whether to use traditional RoPE. Defaults to True.
+        rope_traditional (bool, optional): whether to use traditional RoPE. Defaults to False.
         rope_theta (float, optional): RoPE theta. Defaults to 1000.
         rope_scaling (Optional[Dict[str, Union[float, str]]], optional): RoPE scaling. Defaults to None.
     """
@@ -150,7 +140,7 @@ class TransformerBlock(nn.Module):
         hidden_dim: int,
         norm_eps: float,
         head_dim: Optional[int] = None,
-        rope_traditional: bool = True,
+        rope_traditional: bool = False,
         rope_theta: float = 1000,
         rope_scaling: Optional[Dict[str, Union[float, str]]] = None,
     ) -> None:
@@ -207,7 +197,7 @@ class Transformer(nn.Module):
         n_kv_heads (Optional[int]): number of key-value heads. If None, it is set to num_heads. Defaults to None.
         head_dim (Optional[int], optional): head dimension. Defaults to None.
         norm_eps (float): normalization epsilon. Defaults to 1e-5.
-        rope_traditional (bool, optional): whether to use traditional RoPE. Defaults to True.
+        rope_traditional (bool, optional): whether to use traditional RoPE. Defaults to False.
         rope_theta (float, optional): RoPE theta. Defaults to 1000.
         rope_scaling (Optional[Dict[str, Union[float, str]]], optional): RoPE scaling. Defaults to None.
         embed_as_head (bool, optional): whether to embed as head (for Gemma models). Defaults to False.
@@ -223,7 +213,7 @@ class Transformer(nn.Module):
         n_kv_heads: Optional[int] = None,
         head_dim: Optional[int] = None,
         norm_eps: float = 1e-5,
-        rope_traditional: bool = True,
+        rope_traditional: bool = False,
         rope_theta: float = 1000,
         rope_scaling: Optional[Dict[str, Union[float, str]]] = None,
         embed_as_head: bool = False,
