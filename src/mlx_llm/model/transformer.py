@@ -259,17 +259,15 @@ class Transformer(nn.Module):
                 rope_traditional=rope_traditional,
                 rope_theta=rope_theta,
                 rope_scaling=rope_scaling,
-                gemma=gemma,
+                gemma=self.gemma,
             )
             for _ in range(n_layers)
         ]
         if not self.gemma:
             self.norm = nn.RMSNorm(dim, eps=norm_eps)
-        else:
-            self.norm = RMSNorm(dim, eps=norm_eps)
-        if not self.gemma:
             self.head = nn.Linear(dim, vocab_size, bias=False)
         else:
+            self.norm = RMSNorm(dim, eps=norm_eps)
             self.head = None  # type: ignore
 
     def embed(
@@ -316,7 +314,7 @@ class Transformer(nn.Module):
             Tuple[mx.array, List[mx.array]]: output and key-value cache
         """
         x, kv_cache = self.embed(x, kv_cache=kv_cache, norm=True)
-        if self.gemma is not None:
+        if self.gemma:
             out = self.token_embed.as_linear(x)
         else:
             out = self.head(x)

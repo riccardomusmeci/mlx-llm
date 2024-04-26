@@ -378,7 +378,7 @@ def gemma_2b_it(
 def gemma_7b_it(
     vocab_size: int = 256000, norm_eps: float = 1e-6, rope_theta: float = 10000.0, rope_traditional: bool = False
 ) -> Tuple[Transformer, ModelConfig]:
-    """Create a Gemma /B (v1.1) model
+    """Create a Gemma 7B (v1.1) model
 
     Args:
         vocab_size (int, optional): vocab size. Defaults to 256000.
