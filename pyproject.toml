@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "mlx_llm"
-version = "1.0.0"
-description = "Apple MLX library for LLM on Apple Silicon GPU"
+version = "1.0.1"
+description = "Large Language Models (LLMs) applications and tools running on Apple Silicon in real-time with Apple MLX"
 authors = ["Riccardo Musmeci <riccardomusmeci92@gmail.com>"]
 readme = "README.md"
 packages = [
