@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mlx_llm"
-version = "0.5.0"
+version = "1.0.0"
 description = "Apple MLX library for LLM on Apple Silicon GPU"
 authors = ["Riccardo Musmeci <riccardomusmeci92@gmail.com>"]
 readme = "README.md"
@@ -10,43 +10,23 @@ packages = [
 
 [tool.poetry.dependencies]
 python="^3.10"
-mlx = "0.2.0"
-torch = "2.1.2"
+mlx = "*"
+torch = "*"
 numpy = "1.26.2"
 tqdm = "*"
 sentencepiece = "*"
 safetensors = "*"
-transformers = "4.36.2"
+transformers = "*"
+huggingface-hub = "*"
 
 # dev dependencies
 black = { version = "23.3.0", optional = true, extras = ["jupyter"] }
 ruff = { version = "0.0.264", optional = true }
 mypy = { version = "1.2.0", optional = true }
-pre-commit = { version = "3.3.1", optional = true }
-docformatter = { version = "1.5.1", optional = true }
-docstr-coverage = { version = "2.2.0", optional = true }
-twine = { version = ">=4.0.0,<5", optional = true }
-
-# test dependencies
-pytest = { version = "7.3.1", optional = true }
-pytest-cov = { version = "4.0.0", optional = true }
-# beautify pytest output
-pytest-sugar = { version = "0.9.7", optional = true }
-# parallel test execution
-pytest-xdist = { version = "3.2.1", optional = true }
-
 
 [tool.poetry.extras]
-dev = [
-  "black",
-  "ruff",
-  "mypy",
-  "pre-commit",
-  "docformatter",
-  "docstr-coverage",
-  "twine",
-]
-test = ["pytest", "pytest-cov", "pytest-sugar", "pytest-xdist"]
+dev = ["black", "ruff", "mypy"]
+
 
 [build-system]
 requires = ["poetry-core"]
@@ -85,11 +65,7 @@ exclude = [
   "__pycache__",
   "bin",
   "lib",
-  "src/mlx_llm/model/bert.py",
-  "src/mlx_llm/model/phi2.py",
-  "src/mlx_llm/model/transformer.py",
 ]
-#per-file-ignores = {}
 
 # Allow unused variables when underscore-prefixed.
 #dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
@@ -103,30 +79,6 @@ known-first-party = ["src"]
 [tool.ruff.mccabe]
 max-complexity = 18
 
-[tool.coverage.run]
-branch = true
-dynamic_context = "test_function"
-source = ["src/mlx_llm"]
-# omit = ["src/mlx_llm/__init__.py", "src/mlx_llm/visualization/*.py"]
-
-[tool.coverage.report]
-exclude_lines = [
-  # Have to re-enable the standard pragma
-  "pragma: no cover",
-  # Don't complain about missing debug-only code:
-  "def __repr__",
-  "if self\\.debug",
-  # Don't complain if tests don't hit defensive assertion code:
-  "raise AssertionError",
-  "raise NotImplementedError",
-  # Don't complain if non-runnable code isn't run:
-  "if 0:",
-  "if __name__ == .__main__.:",
-]
-
-[tool.coverage.html]
-directory = "htmlcov"
-show_contexts = true
 
 [tool.black]
 line-length = 120
@@ -160,12 +112,6 @@ exclude = '''
 )/
 '''
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-log_file = "tests/logs/pytest-logs.log"
-log_file_level = "DEBUG"
-log_file_format = "%(asctime)s | %(levelname)-8s | %(module)-20s | %(funcName)-20s | %(thread)-8d ; %(message)s"
-log_file_date_format = "%Y-%m-%d %H:%M:%S"
 
 [tool.mypy]
 python_version = "3.10"
@@ -180,32 +126,6 @@ exclude = [
   'lib',
   '.cicd',
   "tests",
-  "src/mlx_llm/model/transformer.py",
-  "src/mlx_llm/model/phi2.py",
-  "src/mlx_llm/model/bert.py",
+  "local"
 ]
-# enables PEP 420 style namespace packages.
-namespace_packages = true
-# follows all imports normally and type checks all top level code
-# (as well as the bodies of all functions and methods with at least one type annotation in the signature).
-follow_imports = "normal"
-# raises an error whene imports cannot be resolved
 ignore_missing_imports = true
-# raises an error for functions without type annotations or with incomplete type annotations.
-disallow_untyped_defs = true
-# nicer output in error messages
-pretty = true
-# warns useless # type: ignore commands
-warn_unused_ignores = true
-# shows errors for missing return statements on some execution paths.
-warn_no_return = true
-# shows a warning when encountering any code inferred to be unreachable or redundant after performing type analysis.
-warn_unreachable = true
-# prefixes each error with the relevant context.
-show_error_context = true
-# shows column numbers in error messages.
-show_column_numbers = true
-# hides error codes in error messages
-hide_error_codes = false
-# causes mypy to treat arguments with a None default value as having an implicit Optional type.
-implicit_optional = false
