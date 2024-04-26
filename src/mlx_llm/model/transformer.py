@@ -247,7 +247,7 @@ class Transformer(nn.Module):
             self.head = None  # type: ignore
 
     def embed(
-        self, x: mx.array, kv_cache: Optional[List[Tuple[mx.array, mx.array]]], norm: bool = False
+        self, x: mx.array, kv_cache: Optional[List[Tuple[mx.array, mx.array]]] = None, norm: bool = False
     ) -> Tuple[mx.array, Optional[List[Tuple[mx.array, mx.array]]]]:
         """Compute embedding for the input tokens.
 

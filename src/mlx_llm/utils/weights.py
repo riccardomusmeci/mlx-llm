@@ -70,5 +70,4 @@ def weights_to_mlx(
                 w = w.to(torch.float16).numpy()
                 w = mx.array(w)
             weights[k] = w
-
     return weights
