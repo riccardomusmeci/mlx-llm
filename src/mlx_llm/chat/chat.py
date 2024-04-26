@@ -19,7 +19,7 @@ class ChatSetup:
     """
 
     system: str
-    history: Optional[List[Dict[str, str]]] = None
+    history: List[Dict[str, str]] = ()
 
     def session(self) -> Session:
         """Create session
@@ -33,8 +33,6 @@ class ChatSetup:
         for el in self.history:  # type: ignore
             if "question" not in el.keys() or "answer" not in el.keys():
                 raise ValueError("Each element in history must contain a question and an answer.")
-        if self.history is None:
-            return Session()
         else:
             return Session(
                 questions=[el["question"] for el in self.history], answers=[el["answer"] for el in self.history]
@@ -79,11 +77,9 @@ class LLMChat:
 
     def start(self) -> None:
         """Start chat"""
-        print("\n[INFO] Start chatting! Press 'q' to quit or 'r' to reset conversation.\n")
+        print("[INFO] Start chatting! Press 'q' to quit or 'r' to reset conversation.")
 
-        print("******* CHAT *******")
-        print(f"[SYSTEM] {self.prompt.system}")
-        print(f"[HISTORY]\n{self.session.to_string()}[/HISTORY]")
+        print("\n*************** CHAT ***************")
 
         while True:
             user = input("User: ")
