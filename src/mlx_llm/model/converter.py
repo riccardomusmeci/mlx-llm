@@ -44,6 +44,7 @@ def llama_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str
             model_weights[model_k] = w
     return model_weights
 
+
 def phi3_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str, mx.array]:
     """Convert original Phi3 weights to MLX format.
 

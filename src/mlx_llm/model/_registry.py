@@ -6,6 +6,7 @@ from .transformer import Transformer
 
 MODEL_ENTRYPOINTS = {}
 
+
 def register_model(name: Optional[str] = None) -> Callable:
     """Register a model entrypoint.
 
@@ -28,10 +29,7 @@ def register_model(name: Optional[str] = None) -> Callable:
 
 @register_model("llama_2_7b_chat_hf")
 def llama_2_7b_chat(
-    vocab_size: int = 32000,
-    norm_eps: float = 1e-5,
-    rope_theta: float = 10000.0,
-    rope_traditional: bool = False
+    vocab_size: int = 32000, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
 ) -> Tuple[Transformer, ModelConfig]:
     """Create a LLaMA 2 7B chat model.
 
@@ -67,10 +65,7 @@ def llama_2_7b_chat(
 
 @register_model("llama_2_7b_hf")
 def llama_2_7b(
-    vocab_size: int = 32000,
-    norm_eps: float = 1e-5,
-    rope_theta: float = 10000.0,
-    rope_traditional: bool = False
+    vocab_size: int = 32000, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
 ) -> Tuple[Transformer, ModelConfig]:
     """Create a LLaMA 2 7B chat model.
 
@@ -106,10 +101,7 @@ def llama_2_7b(
 
 @register_model("llama_3_8b")
 def llama_3_8b(
-    vocab_size: int = 128256,
-    norm_eps: float = 1e-5,
-    rope_theta: float = 500000.0,
-    rope_traditional: bool = False
+    vocab_size: int = 128256, norm_eps: float = 1e-5, rope_theta: float = 500000.0, rope_traditional: bool = False
 ) -> Tuple[Transformer, ModelConfig]:
     """Create a LLaMA 3 8B model.
 
@@ -145,10 +137,7 @@ def llama_3_8b(
 
 @register_model("llama_3_8b_instruct")
 def llama_3_8b_instruct(
-    vocab_size: int = 128256,
-    norm_eps: float = 1e-5,
-    rope_theta: float = 500000.0,
-    rope_traditional: bool = False
+    vocab_size: int = 128256, norm_eps: float = 1e-5, rope_theta: float = 500000.0, rope_traditional: bool = False
 ) -> Tuple[Transformer, ModelConfig]:
     """Create a LLaMA 3 8B Instruct model.
 
@@ -185,10 +174,7 @@ def llama_3_8b_instruct(
 
 @register_model("phi_3_mini_4k_instruct")
 def phi3_mini_4k_instruct(
-    vocab_size: int = 32064,
-    norm_eps: float = 1e-5,
-    rope_theta: float = 10000.0,
-    rope_traditional: bool = False
+    vocab_size: int = 32064, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
 ) -> Tuple[Transformer, ModelConfig]:
     """Create a Phi3 Mini 4k Instruct model.
 
@@ -224,10 +210,7 @@ def phi3_mini_4k_instruct(
 
 @register_model("phi_3_mini_128k_instruct")
 def phi3_mini_128k_instruct(
-    vocab_size: int = 32064,
-    norm_eps: float = 1e-5,
-    rope_theta: float = 10000.0,
-    rope_traditional: bool = False
+    vocab_size: int = 32064, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
 ) -> Tuple[Transformer, ModelConfig]:
     """Create a Phi3 Mini 128k Instruct model.
 
@@ -263,10 +246,7 @@ def phi3_mini_128k_instruct(
 
 @register_model("mistral_7b_instruct_v0.2")
 def mistral_7b_instruct_v02(
-    vocab_size: int = 32064,
-    norm_eps: float = 1e-5,
-    rope_theta: float = 10000.0,
-    rope_traditional: bool = False
+    vocab_size: int = 32064, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
 ) -> Tuple[Transformer, ModelConfig]:
     """Create a Mistral Instruct v0.2 Instruct model.
 
@@ -298,10 +278,7 @@ def mistral_7b_instruct_v02(
 
 @register_model("openhermes_2.5_mistral_7b")
 def openhermes_25_mistral_7b(
-    vocab_size: int = 32064,
-    norm_eps: float = 1e-5,
-    rope_theta: float = 10000.0,
-    rope_traditional: bool = False
+    vocab_size: int = 32064, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
 ) -> Tuple[Transformer, ModelConfig]:
     """Create a OpenHermes 2.5 Mistral 7B model.
 
@@ -333,10 +310,7 @@ def openhermes_25_mistral_7b(
 
 @register_model("tiny_llama_1.1B_chat_v1.0")
 def tiny_llama_11B_chat_v10(
-    vocab_size: int = 32000,
-    norm_eps: float = 1e-5,
-    rope_theta: float = 10000.0,
-    rope_traditional: bool = False
+    vocab_size: int = 32000, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
 ) -> Tuple[Transformer, ModelConfig]:
     """Create a Tiny Llama 1.1B Chat v1.0 model.
 
