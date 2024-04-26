@@ -4,6 +4,16 @@ import mlx.core as mx
 import mlx.nn as nn
 
 
+class RMSNorm(nn.Module):
+    def __init__(self, dims: int, eps: float = 1e-5):
+        super().__init__()
+        self.weight = mx.ones((dims,))
+        self.eps = eps
+
+    def __call__(self, x):
+        return mx.fast.rms_norm(x, 1.0 + self.weight, self.eps)
+
+
 class Attention(nn.Module):
     """Attention module
 
@@ -96,14 +106,16 @@ class MLP(nn.Module):
     Args:
         dim (int): model dimension
         hidden_dim (int): hidden dimension
+        gemma (bool, optional): use Gemma activation. Defaults to False.
     """
 
-    def __init__(self, dim: int, hidden_dim: int):
+    def __init__(self, dim: int, hidden_dim: int, gemma: bool = False):
         super().__init__()
 
         self.gate_proj = nn.Linear(dim, hidden_dim, bias=False)
         self.down_proj = nn.Linear(hidden_dim, dim, bias=False)
         self.up_proj = nn.Linear(dim, hidden_dim, bias=False)
+        self.gemma = gemma
 
     def __call__(self, x: mx.array) -> mx.array:
         """Forward pass
@@ -114,7 +126,10 @@ class MLP(nn.Module):
         Returns:
             mx.array: output
         """
-        return self.down_proj(nn.silu(self.gate_proj(x)) * self.up_proj(x))
+        if self.gemma:
+            return self.down_proj(nn.gelu(self.gate_proj(x)) * self.up_proj(x))
+        else:
+            return self.down_proj(nn.silu(self.gate_proj(x)) * self.up_proj(x))
 
 
 class TransformerBlock(nn.Module):
@@ -130,6 +145,7 @@ class TransformerBlock(nn.Module):
         rope_traditional (bool, optional): whether to use traditional RoPE. Defaults to False.
         rope_theta (float, optional): RoPE theta. Defaults to 1000.
         rope_scaling (Optional[Dict[str, Union[float, str]]], optional): RoPE scaling. Defaults to None.
+        gemma (bool, optional): whether using Gemma layers. Defaults to False.
     """
 
     def __init__(
@@ -143,6 +159,7 @@ class TransformerBlock(nn.Module):
         rope_traditional: bool = False,
         rope_theta: float = 1000,
         rope_scaling: Optional[Dict[str, Union[float, str]]] = None,
+        gemma: bool = False,
     ) -> None:
         super().__init__()
         self.n_heads = n_heads
@@ -156,11 +173,14 @@ class TransformerBlock(nn.Module):
             rope_theta=rope_theta,
             rope_scaling=rope_scaling,
         )
-        self.mlp = MLP(dim=dim, hidden_dim=hidden_dim)
-        self.attention_norm = nn.RMSNorm(dim, eps=norm_eps)
-        # self.attention_norm = RMSNorm(dim, eps=norm_eps)
-        self.mlp_norm = nn.RMSNorm(dim, eps=norm_eps)
-        # self.mlp_norm = RMSNorm(dim, eps=norm_eps)
+        self.mlp = MLP(dim=dim, hidden_dim=hidden_dim, gemma=gemma)
+
+        if not gemma:
+            self.attention_norm = nn.RMSNorm(dim, eps=norm_eps)
+            self.mlp_norm = nn.RMSNorm(dim, eps=norm_eps)
+        else:
+            self.attention_norm = RMSNorm(dim, eps=norm_eps)
+            self.mlp_norm = RMSNorm(dim, eps=norm_eps)
 
     def __call__(
         self,
@@ -200,7 +220,7 @@ class Transformer(nn.Module):
         rope_traditional (bool, optional): whether to use traditional RoPE. Defaults to False.
         rope_theta (float, optional): RoPE theta. Defaults to 1000.
         rope_scaling (Optional[Dict[str, Union[float, str]]], optional): RoPE scaling. Defaults to None.
-        embed_as_head (bool, optional): whether to embed as head (for Gemma models). Defaults to False.
+        gemma (bool, optional): whether to use Gemma Transformer. Defaults to False.
     """
 
     def __init__(
@@ -216,15 +236,18 @@ class Transformer(nn.Module):
         rope_traditional: bool = False,
         rope_theta: float = 1000,
         rope_scaling: Optional[Dict[str, Union[float, str]]] = None,
-        embed_as_head: bool = False,
+        gemma: bool = False,
     ):
         super().__init__()
+        self.dim = dim
+        self.hidden_dim = hidden_dim
         self.vocab_size = vocab_size
         self.n_layers = n_layers
+        self.gemma = gemma
         assert self.vocab_size > 0
         if n_kv_heads is None:
             n_kv_heads = n_heads
-        self.token_embed = nn.Embedding(vocab_size, dim)
+        self.token_embed = nn.Embedding(vocab_size, self.dim)
         self.layers = [
             TransformerBlock(
                 dim=dim,
@@ -236,12 +259,15 @@ class Transformer(nn.Module):
                 rope_traditional=rope_traditional,
                 rope_theta=rope_theta,
                 rope_scaling=rope_scaling,
+                gemma=gemma,
             )
             for _ in range(n_layers)
         ]
-        self.norm = nn.RMSNorm(dim, eps=norm_eps)
-        # self.norm = nn.RMSNorm(dim, eps=norm_eps)
-        if not embed_as_head:
+        if not self.gemma:
+            self.norm = nn.RMSNorm(dim, eps=norm_eps)
+        else:
+            self.norm = RMSNorm(dim, eps=norm_eps)
+        if not self.gemma:
             self.head = nn.Linear(dim, vocab_size, bias=False)
         else:
             self.head = None  # type: ignore
@@ -260,6 +286,9 @@ class Transformer(nn.Module):
             Tuple[mx.array, Optional[List[Tuple[mx.array, mx.array]]]]: output and key-value cache
         """
         h = self.token_embed(x)
+
+        if self.gemma:
+            h = h * (self.dim**0.5)
 
         mask = None
         if h.shape[1] > 1:
@@ -287,10 +316,10 @@ class Transformer(nn.Module):
             Tuple[mx.array, List[mx.array]]: output and key-value cache
         """
         x, kv_cache = self.embed(x, kv_cache=kv_cache, norm=True)
-        if self.head is not None:
-            out = self.head(x)
-        else:
+        if self.gemma is not None:
             out = self.token_embed.as_linear(x)
+        else:
+            out = self.head(x)
         return out, kv_cache  # type: ignore
 
     def generate(self, x: mx.array, temp: Optional[float] = 0.0):
