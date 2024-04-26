@@ -45,7 +45,7 @@ class LLaMA2Prompt(Prompt):
         prompt = f"{self.INST_START} {self.SYS_START}\n{self.system}\n{self.SYS_END}\n\n"
         for qa in session.history:
             # qa --> {"question": ..., "answer": ...}
-            prompt += qa["question"] + " "
+            prompt += qa["question"] + " "  # type: ignore
             if qa["answer"] is None:
                 break
             else:

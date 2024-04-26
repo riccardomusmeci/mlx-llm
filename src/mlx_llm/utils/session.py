@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Dict
+from typing import Dict, List, Optional, Tuple
 
 
 class Session:
@@ -9,9 +9,14 @@ class Session:
         answers (List[str], optional): answers. Defaults to [].
     """
 
-    def __init__(self, questions: List[str] = [], answers: List[str] = []) -> None:  # noqa: D107  # noqa: B006
+    def __init__(
+        self, questions: Optional[List[str]] = None, answers: Optional[List[str]] = None
+    ) -> None:  # noqa: D107  # noqa: B006
+        questions = questions or []
+        answers = answers or []
+
         self.questions, self.answers = self._load(questions, answers)
-        self.q_reset_len = len(self.question)
+        self.q_reset_len = len(self.questions)
         self.a_reset_len = len(self.answers)
 
     def _load(self, questions: List[str], answers: List[str]) -> Tuple[List[str], List[str]]:
@@ -78,11 +83,11 @@ class Session:
         self.answers.append(answer)
 
     @property
-    def history(self) -> List[Dict[str, str]]:
+    def history(self) -> List[Dict[str, Optional[str]]]:
         """Conversation history.
 
         Returns:
-            List[QA]: conversation history
+            List[Dict[str, Optional[str]]]: session history in the form of a list of dictionaries with keys "question" and "answer"
         """
         history = []
         for i in range(len(self.questions)):
@@ -112,9 +117,9 @@ class Session:
         _history = self.history[-last_k:]
         out = ""
         for qa in _history:
-            out += f"{qa['question']}\n"
+            out += f"Question: {qa['question']}\n"
             if qa["answer"] is not None:
-                out += f"{qa['answer']}\n"
+                out += f"Answer: {qa['answer']}\n"
         return out
 
     def __len__(self) -> int:
@@ -125,13 +130,13 @@ class Session:
         """
         return len(self.questions)
 
-    def __getitem__(self, idx: int) -> Dict[str, str]:
+    def __getitem__(self, idx: int) -> Dict[str, Optional[str]]:
         """Get item from conversation.
 
         Args:
             idx (int): index
 
         Returns:
-            Dict[str, str]: item
+            Dict[str, Optional[str]]: item
         """
         return self.history[idx]

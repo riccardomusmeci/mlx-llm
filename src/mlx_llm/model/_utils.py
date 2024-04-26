@@ -11,13 +11,13 @@ from transformers import AutoTokenizer
 
 def apply_weights(
     model: nn.Module,
-    weights: Dict[str, np.array],
+    weights: Dict[str, mx.array],  # type: ignore
 ) -> nn.Module:
     """Apply weights to a model.
 
     Args:
         model (nn.Module): a model
-        weights (Dict[str, np.array]): weights dict
+        weights (Dict[str, mx.array]): weights dict
 
     Returns:
         nn.Module: a model with weights applied
@@ -128,10 +128,7 @@ def quantize(model: nn.Module, group_size: int, bits: int) -> nn.Module:
         Tuple: model
     """
 
-    # def linear_class_predicate(m):
-    #     return isinstance(m, nn.Linear) and m.weight.shape[0] != 8
-
-    nn.quantize(model, group_size, bits)
+    nn.quantize(model, group_size, bits)  # type: ignore
     return model
 
 

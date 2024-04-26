@@ -1,27 +1,38 @@
-from .llama import LLaMA2Prompt, LLaMA3Prompt, TinyLLaMAPrompt
-from .phi import Phi3Prompt
-from .mistral import MistralPrompt
 from ._base import Prompt
+from .llama import LLaMA2Prompt, LLaMA3Prompt, TinyLLaMAPrompt
+from .mistral import MistralPrompt
+from .phi import Phi3Prompt
 
 PROMPT_ENTRYPOINTS = {
     "llama2": LLaMA2Prompt,
     "llama3": LLaMA3Prompt,
     "phi3": Phi3Prompt,
     "mistral": MistralPrompt,
-    "tiny_llama": TinyLLaMAPrompt,
+    "tinyllama": TinyLLaMAPrompt,
 }
 
 
-def create_prompt(model_family: str, system: str) -> Prompt:
+def create_prompt(model_name: str, system: str = "") -> Prompt:
     """Create prompt based on model family
 
     Args:
-        model_family (str): model family
+        model_name (str): model name
+        system (str): system prompt
 
     Returns:
         Prompt: prompt class
     """
-    if model_family not in PROMPT_ENTRYPOINTS:
-        raise ValueError(f"Model family {model_family} not found in available prompts")
 
-    return PROMPT_ENTRYPOINTS[model_family](system=system)
+    model_family = model_name.replace("_", "").replace(".", "").replace("-", "").lower()
+    found = False
+    for k in PROMPT_ENTRYPOINTS.keys():
+        if k in model_family:
+            model_family = k
+            found = True
+            break
+    if not found:
+        raise ValueError(
+            f"Model {model_name} not found in available prompts. Familes available: {list(PROMPT_ENTRYPOINTS.keys())}"
+        )
+
+    return PROMPT_ENTRYPOINTS[model_family](system=system)  # type: ignore

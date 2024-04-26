@@ -1,11 +1,11 @@
 from typing import Dict, List
 
-import numpy as np
+import mlx.core as mx
 
 from ..utils.weights import weights_to_mlx
 
 
-def llama_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str, np.array]:
+def llama_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str, mx.array]:
     """Convert LLaMA 3 8B weights to MLX format.
 
     Args:
@@ -13,7 +13,7 @@ def llama_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str
         verbose (bool, optional): whether to print information during conversion. Defaults to False.
 
     Returns:
-        Dict[str, np.array]: a dict of weights in MLX format
+        Dict[str, mx.array]: a dict of weights in MLX format
     """
 
     model_weights = {}
@@ -42,10 +42,10 @@ def llama_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str
             key_map = {"embed_tokens": "token_embed", "lm_head": "head", "norm": "norm"}
             model_k = f"{key_map[k_split[0]]}.{k_split[1]}"
             model_weights[model_k] = w
-    return model_weights
+    return model_weights # 
 
 
-def phi3_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str, np.array]:
+def phi3_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str, mx.array]:
     """Convert original Phi3 weights to MLX format.
 
     Args:
@@ -53,7 +53,7 @@ def phi3_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str,
         verbose (bool, optional): whether to print information during conversion. Defaults to False.
 
     Returns:
-        Dict[str, np.array]: a dict of weights in MLX format
+        Dict[str, mx.array]: a dict of weights in MLX format
     """
     model_weights = {}
     weights = weights_to_mlx(weights_paths)
@@ -100,7 +100,7 @@ def phi3_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str,
     return model_weights
 
 
-def mistral_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str, np.array]:
+def mistral_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str, mx.array]:
     """Convert Mistral weights to MLX format.
 
     Args:
@@ -108,7 +108,7 @@ def mistral_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[s
         verbose (bool, optional): whether to print information during conversion. Defaults to False.
 
     Returns:
-        Dict[str, np.array]: a dict of weights in MLX format
+        Dict[str, mx.array]: a dict of weights in MLX format
     """
     model_weights = {}
     weights = weights_to_mlx(weights_paths)

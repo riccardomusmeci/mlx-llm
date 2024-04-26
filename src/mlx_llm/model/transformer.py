@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Dict, List, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import mlx.core as mx
 import mlx.nn as nn
@@ -41,7 +41,7 @@ class Attention(nn.Module):
         self.v_proj = nn.Linear(dim, n_kv_heads * head_dim, bias=False)
         self.o_proj = nn.Linear(n_heads * head_dim, dim, bias=False)
 
-        rope_scale = 1 / rope_scaling["factor"] if rope_scaling is not None and rope_scaling["type"] == "linear" else 1
+        rope_scale = 1 / rope_scaling["factor"] if rope_scaling is not None and rope_scaling["type"] == "linear" else 1  # type: ignore
 
         self.rope = nn.RoPE(
             dims=head_dim,
@@ -85,7 +85,7 @@ class Attention(nn.Module):
             queries = self.rope(queries)
             keys = self.rope(keys)
 
-        output = mx.fast.scaled_dot_product_attention(queries, keys, values, scale=self.scale, mask=mask)
+        output = mx.fast.scaled_dot_product_attention(queries, keys, values, scale=self.scale, mask=mask)  # type: ignore
         output = output.transpose(0, 2, 1, 3).reshape(B, L, -1)
         return self.o_proj(output), (keys, values)
 
@@ -244,7 +244,7 @@ class Transformer(nn.Module):
         if not embed_as_head:
             self.head = nn.Linear(dim, vocab_size, bias=False)
         else:
-            self.head = None
+            self.head = None  # type: ignore
 
     def embed(
         self, x: mx.array, kv_cache: Optional[List[Tuple[mx.array, mx.array]]], norm: bool = False
@@ -267,7 +267,7 @@ class Transformer(nn.Module):
             mask = mask.astype(h.dtype)
 
         if kv_cache is None:
-            kv_cache = [None] * len(self.layers)
+            kv_cache = [None] * len(self.layers)  # type: ignore
 
         for e, layer in enumerate(self.layers):
             h, kv_cache[e] = layer(x=h, mask=mask, kv_cache=kv_cache[e])
@@ -291,7 +291,7 @@ class Transformer(nn.Module):
             out = self.head(x)
         else:
             out = self.token_embed.as_linear(x)
-        return out, kv_cache
+        return out, kv_cache  # type: ignore
 
     def generate(self, x: mx.array, temp: Optional[float] = 0.0):
         """Generate tokens from a given input

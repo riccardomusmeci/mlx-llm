@@ -73,10 +73,10 @@ def create_model(
         model_path = download_from_hf(
             repo_id=weights.replace("hf://", ""),
         )
-        weights = glob.glob(os.path.join(model_path, "*.safetensors"))
+        weights = glob.glob(os.path.join(model_path, "*.safetensors"))  # type: ignore
         if converter is not None:
             weights = converter(weights)
-            model = apply_weights(model, weights)
+            model = apply_weights(model, weights)  # type: ignore
 
     elif isinstance(weights, bool) and weights is True:
         model_path = download_from_hf(
@@ -85,7 +85,7 @@ def create_model(
         if model_path.endswith(".safetensors"):
             weights = model_path
         else:
-            weights = glob.glob(os.path.join(model_path, "*.safetensors"))
+            weights = glob.glob(os.path.join(model_path, "*.safetensors"))  # type: ignore
         if config.converter is not None:
             weights = config.converter(weights)
             model = apply_weights(model, weights)

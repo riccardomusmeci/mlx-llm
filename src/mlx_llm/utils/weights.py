@@ -51,15 +51,15 @@ def smart_load(ckpt_paths: Union[List[str], str]) -> Generator:
 def weights_to_mlx(
     ckpt_paths: Union[List[str], str],
     show_kv: bool = False,
-) -> Dict[str, np.ndarray]:
-    """Convert a checkpoint from PyTorch or safetensors to a MLX weights Dict (npz file).
+) -> Dict[str, mx.array]:
+    """Convert a checkpoint from PyTorch or safetensors to a MLX weights (Dict[str, mx.array]).
 
     Args:
         ckpt_paths (Union[List[str], str]): path to checkpoint
         show_kv (bool, optional): whether to show key-value pairs. Defaults to False.
 
     Returns:
-        Dict[str, np.ndarray]: MLX weights dict (key, np.ndarray)
+        Dict[str, mx.array]: MLX weights dict (key, mx.array)
     """
     weights = {}
     for state_dict in smart_load(ckpt_paths):
@@ -68,6 +68,7 @@ def weights_to_mlx(
                 print(k, w.shape)
             if isinstance(w, torch.Tensor):
                 w = w.to(torch.float16).numpy()
+                w = mx.array(w)
             weights[k] = w
 
     return weights
