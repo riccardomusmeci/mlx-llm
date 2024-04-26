@@ -18,6 +18,7 @@ sentencepiece = "*"
 safetensors = "*"
 transformers = "*"
 huggingface-hub = "*"
+protobuf = "*"
 
 # dev dependencies
 black = { version = "23.3.0", optional = true, extras = ["jupyter"] }
