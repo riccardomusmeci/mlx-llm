@@ -338,3 +338,71 @@ def tiny_llama_11B_chat_v10(
     config = ModelConfig(hf=HFConfig(repo_id="TinyLlama/TinyLlama-1.1B-Chat-v1.0"), converter=llama_to_mlxllm)
 
     return model, config
+
+
+@register_model("gemma_1.1_2b_it")
+def gemma_2b_it(
+    vocab_size: int = 256000, norm_eps: float = 1e-6, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a Gemma 2B (v1.1) model
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 256000.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-6.
+        rope_theta (float, optional): rope theta. Defaults to 10000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=2048,
+        hidden_dim=16384,
+        vocab_size=vocab_size,
+        n_layers=18,
+        n_heads=8,
+        n_kv_heads=1,
+        head_dim=256,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+        gemma=True,
+    )
+
+    config = ModelConfig(hf=HFConfig(repo_id="google/gemma-1.1-2b-it"), converter=llama_to_mlxllm)
+
+    return model, config
+
+
+@register_model("gemma_1.1_7b_it")
+def gemma_7b_it(
+    vocab_size: int = 256000, norm_eps: float = 1e-6, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a Gemma /B (v1.1) model
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 256000.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-6.
+        rope_theta (float, optional): rope theta. Defaults to 10000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=3072,
+        hidden_dim=24576,
+        vocab_size=vocab_size,
+        n_layers=28,
+        n_heads=16,
+        n_kv_heads=16,
+        head_dim=256,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+        gemma=True,
+    )
+
+    config = ModelConfig(hf=HFConfig(repo_id="google/gemma-1.1-7b-it"), converter=llama_to_mlxllm)
+
+    return model, config
