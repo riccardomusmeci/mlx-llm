@@ -28,7 +28,7 @@ You can also load a new version of pre-trained weights for a specific model dire
 - load the proper weights converter function  
 - if necessary, specify custom model configs (rope_theta, rope_traditional, vocab_size, norm_eps)
 
-Here's an example of 
+Here's an example of how to to it:
 ```python
 from mlx_llm.model import create_model
 from mlx_llm.model.converter import llama_to_mlxllm
@@ -52,7 +52,7 @@ print(list_models())
 
 ### **Quantization 📉**
 
-To quantize a model and save its weights just use
+To quantize a model and save its weights just use:
 
 ```python
 from mlx_llm.model import create_model, quantize, get_weights
@@ -134,7 +134,7 @@ raise NotImplementedError
 
 [ ] LoRA and QLoRA
 
-[ ] refactoring RAG
+[ ] RAG
 
 ## 📧 Contact
 
