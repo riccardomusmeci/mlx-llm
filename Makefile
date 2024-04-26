@@ -3,15 +3,16 @@ SHELL = /bin/bash
 pkg_name = mlx-llm
 src_pkg = src/$(pkg_name)
 
-.PHONY: all install clean check test test_fast full coverage ci doc doc_publish
+.PHONY: all install clean
+
 all:
 	make clean
+	make format
 	make install
 
 install:
     # Uncomment the following line if you want to run a prebuild script (must exist)
-	pip install -e .[dev,test,docs]
-	make full
+	pip install -e .[dev]
 
 clean:
 	-rm -rf .benchmarks
@@ -22,18 +23,11 @@ clean:
 	-rm -rf dist
 	-rm -rf *.egg-info
 	-find . -not -path "./.git/*" -name logs -exec rm -rf {} \;
-	-rm -rf logs
-	-rm .coverage
 	-rm -rf .ruff_cache
 	-find . -not -path "./.git/*" -name '.benchmarks' -exec rm -rf {} \;
-
-check:
-	ruff check --diff .
-	black --check --diff .
 
 format:
 	ruff check --show-fixes .
 	black .
+	mypy .
 
-full:
-	make check

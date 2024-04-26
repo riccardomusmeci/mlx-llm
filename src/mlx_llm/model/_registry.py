@@ -1,66 +1,340 @@
-from .bert import bert_base_uncased, bert_large_uncased, multilingual_e5_large
-from .phi2 import phi2
-from .transformer import (
-    e5_mistral_7b_instruct,
-    llama_2_7B_chat,
-    mistral_7B_instruct_v02,
-    openhermes_25_mistral_7B,
-    tiny_llama_chat,
-)
+from typing import Callable, Dict, Optional, Tuple
 
-MODEL_ENTRYPOINTS = {
-    "Phi2": phi2,
-    "Phi2-4bit": phi2,
-    "LLaMA-2-7B-chat": llama_2_7B_chat,
-    "LLaMA-2-7B-chat-4bit": llama_2_7B_chat,
-    "TinyLlama-1.1B-Chat-v0.6": tiny_llama_chat,
-    "TinyLlama-1.1B-Chat-v0.6-4bit": tiny_llama_chat,
-    "Mistral-7B-Instruct-v0.2": mistral_7B_instruct_v02,
-    "Mistral-7B-Instruct-v0.2-4bit": mistral_7B_instruct_v02,
-    "OpenHermes-2.5-Mistral-7B": openhermes_25_mistral_7B,
-    "OpenHermes-2.5-Mistral-7B-4bit": openhermes_25_mistral_7B,
-    "e5-mistral-7b-instruct": e5_mistral_7b_instruct,
-    "bert-base-uncased": bert_base_uncased,
-    "bert-large-uncased": bert_large_uncased,
-    "multilingual-e5-large": multilingual_e5_large,
-}
+from ._config import HFConfig, ModelConfig, QuantizeConfig
+from .converter import llama_to_mlxllm, mistral_to_mlxllm, phi3_to_mlxllm
+from .transformer import Transformer
 
-MODEL_QUANTIZED = {
-    "Phi2-4bit": {"group_size": 64, "bits": 4},
-    "LLaMA-2-7B-chat-4bit": {"group_size": 64, "bits": 4},
-    "TinyLlama-1.1B-Chat-v0.6-4bit": {"group_size": 64, "bits": 4},
-    "Mistral-7B-Instruct-v0.2-4bit": {"group_size": 64, "bits": 4},
-    "OpenHermes-2.5-Mistral-7B-4bit": {"group_size": 64, "bits": 4},
-}
+MODEL_ENTRYPOINTS = {}
 
-MODEL_WEIGHTS = {
-    "Phi2": {"repo_id": "mlx-community/phi-2", "filename": "weights.npz"},
-    "LLaMA-2-7B-chat": {"repo_id": "mlx-community/Llama-2-7b-chat-mlx", "filename": "weights.npz"},
-    "TinyLlama-1.1B-Chat-v0.6": {"repo_id": "mlx-community/TinyLlama-1.1B-Chat-v0.6", "filename": "weights.npz"},
-    "Mistral-7B-Instruct-v0.2": {"repo_id": "mlx-community/Mistral-7B-Instruct-v0.2", "filename": "weights.npz"},
-    "OpenHermes-2.5-Mistral-7B": {"repo_id": "mlx-community/OpenHermes-2.5-Mistral-7B", "filename": "weights.npz"},
-    "OpenHermes-2.5-Mistral-7B-4bit": {
-        "repo_id": "mlx-community/OpenHermes-2.5-Mistral-7B",
-        "filename": "weights_4bit.npz",
-    },
-    "e5-mistral-7b-instruct": {"repo_id": "mlx-community/e5-mistral-7b-instruct-mlx", "filename": "weights.npz"},
-    "bert-base-uncased": {"repo_id": "mlx-community/bert-base-uncased-mlx", "filename": "weights.npz"},
-    "bert-large-uncased": {"repo_id": "mlx-community/bert-large-uncased-mlx", "filename": "weights.npz"},
-}
 
-MODEL_TOKENIZER = {
-    "Phi2": "microsoft/phi-2",
-    "Phi2-4bit": "microsoft/phi-2",
-    "LLaMA-2-7B-chat": "mlx-community/Llama-2-7b-chat-mlx",
-    "LLaMA-2-7B-chat-4bit": "mlx-community/Llama-2-7b-chat-mlx",
-    "OpenHermes-2.5-Mistral-7B": "mlx-community/OpenHermes-2.5-Mistral-7B",
-    "OpenHermes-2.5-Mistral-7B-4bit": "mlx-community/OpenHermes-2.5-Mistral-7B",
-    "e5-mistral-7b-instruct": "mlx-community/e5-mistral-7b-instruct-mlx",
-    "Mistral-7B-Instruct-v0.2": "mlx-community/Mistral-7B-Instruct-v0.2",
-    "Mistral-7B-Instruct-v0.2-4bit": "mlx-community/Mistral-7B-Instruct-v0.2",
-    "TinyLlama-1.1B-Chat-v0.6": "mlx-community/TinyLlama-1.1B-Chat-v0.6",
-    "TinyLlama-1.1B-Chat-v0.6-4bit": "mlx-community/TinyLlama-1.1B-Chat-v0.6",
-    "bert-base-uncased": "bert-base-uncased",
-    "bert-large-uncased": "bert-large-uncased",
-    "multilingual-e5-large": "intfloat/multilingual-e5-large",
-}
+def register_model(name: Optional[str] = None) -> Callable:
+    """Register a model entrypoint.
+
+    Args:
+        name (Optional[str], optional): mlx_llm model name. If None, is the same as the fn name. Defaults to None.
+
+    Returns:
+        Callable: model entrypoint
+    """
+
+    def wrapper(fn: Callable) -> Callable:
+        key = name if name is not None else fn.__name__
+        if key in MODEL_ENTRYPOINTS:
+            raise ValueError(f"Model entrypoints already with '{key}' model.")
+        MODEL_ENTRYPOINTS[key] = fn
+        return fn
+
+    return wrapper
+
+
+@register_model("llama_2_7b_chat_hf")
+def llama_2_7b_chat(
+    vocab_size: int = 32000, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a LLaMA 2 7B chat model.
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 32000.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-5.
+        rope_theta (float, optional): rope theta. Defaults to 10000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=4096,
+        hidden_dim=11008,
+        vocab_size=vocab_size,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=32,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+    )
+
+    config = ModelConfig(
+        hf=HFConfig(
+            repo_id="meta-llama/Llama-2-7b-chat-hf",
+        ),
+        converter=llama_to_mlxllm,
+    )
+    return model, config
+
+
+@register_model("llama_2_7b_hf")
+def llama_2_7b(
+    vocab_size: int = 32000, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a LLaMA 2 7B chat model.
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 32000.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-5.
+        rope_theta (float, optional): rope theta. Defaults to 10000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=4096,
+        hidden_dim=11008,
+        vocab_size=vocab_size,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=32,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+    )
+
+    config = ModelConfig(
+        hf=HFConfig(
+            repo_id="meta-llama/Llama-2-7b-hf",
+        ),
+        converter=llama_to_mlxllm,
+    )
+    return model, config
+
+
+@register_model("llama_3_8b")
+def llama_3_8b(
+    vocab_size: int = 128256, norm_eps: float = 1e-5, rope_theta: float = 500000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a LLaMA 3 8B model.
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 128256.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-5.
+        rope_theta (float, optional): rope theta. Defaults to 500000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=4096,
+        hidden_dim=14336,
+        vocab_size=vocab_size,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=8,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+    )
+
+    config = ModelConfig(
+        hf=HFConfig(
+            repo_id="meta-llama/Meta-Llama-3-8B",
+        ),
+        converter=llama_to_mlxllm,
+    )
+    return model, config
+
+
+@register_model("llama_3_8b_instruct")
+def llama_3_8b_instruct(
+    vocab_size: int = 128256, norm_eps: float = 1e-5, rope_theta: float = 500000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a LLaMA 3 8B Instruct model.
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 128256.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-5.
+        rope_theta (int, optional): rope theta. Defaults to 500000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+
+    model = Transformer(
+        dim=4096,
+        hidden_dim=14336,
+        vocab_size=vocab_size,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=8,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+    )
+
+    config = ModelConfig(
+        hf=HFConfig(
+            repo_id="meta-llama/Meta-Llama-3-8B-Instruct",
+        ),
+        converter=llama_to_mlxllm,
+    )
+    return model, config
+
+
+@register_model("phi_3_mini_4k_instruct")
+def phi3_mini_4k_instruct(
+    vocab_size: int = 32064, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a Phi3 Mini 4k Instruct model.
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 32064.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-5.
+        rope_theta (float, optional): rope theta. Defaults to 10000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=3072,
+        hidden_dim=8192,
+        vocab_size=vocab_size,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=32,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+    )
+
+    config = ModelConfig(
+        hf=HFConfig(
+            repo_id="microsoft/Phi-3-mini-4k-instruct",
+        ),
+        converter=phi3_to_mlxllm,
+    )
+    return model, config
+
+
+@register_model("phi_3_mini_128k_instruct")
+def phi3_mini_128k_instruct(
+    vocab_size: int = 32064, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a Phi3 Mini 128k Instruct model.
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 32064.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-5.
+        rope_theta (float, optional): rope theta. Defaults to 10000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=3072,
+        hidden_dim=8192,
+        vocab_size=vocab_size,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=32,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+    )
+
+    config = ModelConfig(
+        hf=HFConfig(
+            repo_id="microsoft/Phi-3-mini-128k-instruct",
+        ),
+        converter=phi3_to_mlxllm,
+    )
+    return model, config
+
+
+@register_model("mistral_7b_instruct_v0.2")
+def mistral_7b_instruct_v02(
+    vocab_size: int = 32064, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a Mistral Instruct v0.2 Instruct model.
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 32000.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-5.
+        rope_theta (float, optional): rope theta. Defaults to 10000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=4096,
+        hidden_dim=14336,
+        vocab_size=vocab_size,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=8,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+    )
+
+    config = ModelConfig(hf=HFConfig(repo_id="mistralai/Mistral-7B-Instruct-v0.2"), converter=mistral_to_mlxllm)
+
+    return model, config
+
+
+@register_model("openhermes_2.5_mistral_7b")
+def openhermes_25_mistral_7b(
+    vocab_size: int = 32064, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a OpenHermes 2.5 Mistral 7B model.
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 32000.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-5.
+        rope_theta (float, optional): rope theta. Defaults to 10000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=4096,
+        hidden_dim=14336,
+        vocab_size=vocab_size,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=8,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+    )
+
+    config = ModelConfig(hf=HFConfig(repo_id="teknium/OpenHermes-2.5-Mistral-7B"), converter=mistral_to_mlxllm)
+
+    return model, config
+
+
+@register_model("tiny_llama_1.1B_chat_v1.0")
+def tiny_llama_11B_chat_v10(
+    vocab_size: int = 32000, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a Tiny Llama 1.1B Chat v1.0 model.
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 32000.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-5.
+        rope_theta (float, optional): rope theta. Defaults to 10000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=2048,
+        hidden_dim=5632,
+        vocab_size=vocab_size,
+        n_layers=22,
+        n_heads=32,
+        n_kv_heads=4,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+    )
+
+    config = ModelConfig(hf=HFConfig(repo_id="TinyLlama/TinyLlama-1.1B-Chat-v1.0"), converter=llama_to_mlxllm)
+
+    return model, config

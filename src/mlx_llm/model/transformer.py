@@ -1,64 +1,82 @@
-from typing import Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import mlx.core as mx
 import mlx.nn as nn
 
 
-class RMSNorm(nn.Module):
-    def __init__(self, dims: int, eps: float = 1e-5):
-        super().__init__()
-        self.weight = mx.ones((dims,))
-        self.eps = eps
-
-    def _norm(self, x) -> mx.array:
-        return x * mx.rsqrt(x.square().mean(-1, keepdims=True) + self.eps)
-
-    def __call__(self, x):
-        output = self._norm(x.astype(mx.float32)).astype(x.dtype)
-        return self.weight * output
-
-
 class Attention(nn.Module):
-    def __init__(self, dim: int, n_heads: int, n_kv_heads: int, head_dim: int, rope_traditional: bool = True):
+    """Attention module
+
+    Args:
+        dim (int): model dimension
+        n_heads (int): number of attention heads
+        n_kv_heads (int): number of key-value heads
+        head_dim (Optional[int]): head dimension. If None, it is set to dim // n_heads. Defaults to None.
+        rope_traditional (bool, optional): whether to use traditional RoPE. Defaults to False.
+        rope_theta (float, optional): RoPE theta. Defaults to 1000.
+        rope_scaling (Optional[Dict[str, Union[float, str]]], optional): RoPE scaling. Defaults to None.
+    """
+
+    def __init__(
+        self,
+        dim: int,
+        n_heads: int,
+        n_kv_heads: int,
+        head_dim: Optional[int] = None,
+        rope_traditional: bool = False,
+        rope_theta: float = 1000,
+        rope_scaling: Optional[Dict[str, Union[float, str]]] = None,
+    ):
         super().__init__()
 
-        self.n_heads: int = n_heads
-        self.n_kv_heads: int = n_kv_heads
+        self.n_heads = n_heads
+        self.n_kv_heads = n_kv_heads
 
-        self.repeats = n_heads // n_kv_heads
+        head_dim = dim // n_heads if head_dim is None else head_dim
 
         self.scale = head_dim**-0.5
 
-        self.wq = nn.Linear(dim, n_heads * head_dim, bias=False)
-        self.wk = nn.Linear(dim, n_kv_heads * head_dim, bias=False)
-        self.wv = nn.Linear(dim, n_kv_heads * head_dim, bias=False)
-        self.wo = nn.Linear(n_heads * head_dim, dim, bias=False)
+        self.q_proj = nn.Linear(dim, n_heads * head_dim, bias=False)
+        self.k_proj = nn.Linear(dim, n_kv_heads * head_dim, bias=False)
+        self.v_proj = nn.Linear(dim, n_kv_heads * head_dim, bias=False)
+        self.o_proj = nn.Linear(n_heads * head_dim, dim, bias=False)
 
-        self.rope = nn.RoPE(dim // n_heads, traditional=rope_traditional)
+        rope_scale = 1 / rope_scaling["factor"] if rope_scaling is not None and rope_scaling["type"] == "linear" else 1  # type: ignore
+
+        self.rope = nn.RoPE(
+            dims=head_dim,
+            traditional=rope_traditional,
+            base=rope_theta,
+            scale=rope_scale,
+        )
 
     def __call__(
         self,
         x: mx.array,
         mask: Optional[mx.array] = None,
-        cache: Optional[Tuple[mx.array, mx.array]] = None,
-    ) -> mx.array:
+        kv_cache: Optional[Tuple[mx.array, mx.array]] = None,
+    ) -> Tuple[mx.array, Tuple[mx.array, mx.array]]:
+        """Forward pass
+
+        Args:
+            x (mx.array): input tokens
+            mask (Optional[mx.array], optional): attention mask. Defaults to None.
+            kv_cache (Optional[Tuple[mx.array, mx.array]], optional): key-value cache. Defaults to None.
+
+        Returns:
+            Tuple[mx.array, Tuple[mx.array, mx.array]]: output and kv-cache
+        """
         B, L, D = x.shape
 
-        queries, keys, values = self.wq(x), self.wk(x), self.wv(x)
+        queries, keys, values = self.q_proj(x), self.k_proj(x), self.v_proj(x)
 
         # Prepare the queries, keys and values for the attention computation
         queries = queries.reshape(B, L, self.n_heads, -1).transpose(0, 2, 1, 3)
         keys = keys.reshape(B, L, self.n_kv_heads, -1).transpose(0, 2, 1, 3)
         values = values.reshape(B, L, self.n_kv_heads, -1).transpose(0, 2, 1, 3)
 
-        def repeat(a):
-            a = mx.concatenate([mx.expand_dims(a, 2)] * self.repeats, axis=2)
-            return a.reshape([B, self.n_heads, L, -1])
-
-        keys, values = map(repeat, (keys, values))
-
-        if cache is not None:
-            key_cache, value_cache = cache
+        if kv_cache is not None:
+            key_cache, value_cache = kv_cache
             queries = self.rope(queries, offset=key_cache.shape[2])
             keys = self.rope(keys, offset=key_cache.shape[2])
             keys = mx.concatenate([key_cache, keys], axis=2)
@@ -67,61 +85,124 @@ class Attention(nn.Module):
             queries = self.rope(queries)
             keys = self.rope(keys)
 
-        scores = (queries * self.scale) @ keys.transpose(0, 1, 3, 2)
-        if mask is not None:
-            scores += mask
-        scores = mx.softmax(scores.astype(mx.float32), axis=-1).astype(scores.dtype)
-        output = (scores @ values).transpose(0, 2, 1, 3).reshape(B, L, -1)
-        return self.wo(output), (keys, values)
+        output = mx.fast.scaled_dot_product_attention(queries, keys, values, scale=self.scale, mask=mask)  # type: ignore
+        output = output.transpose(0, 2, 1, 3).reshape(B, L, -1)
+        return self.o_proj(output), (keys, values)
 
 
-class FeedForward(nn.Module):
-    def __init__(self, dim, hidden_dim):
+class MLP(nn.Module):
+    """MLP module
+
+    Args:
+        dim (int): model dimension
+        hidden_dim (int): hidden dimension
+    """
+
+    def __init__(self, dim: int, hidden_dim: int):
         super().__init__()
 
-        self.w1 = nn.Linear(dim, hidden_dim, bias=False)
-        self.w2 = nn.Linear(hidden_dim, dim, bias=False)
-        self.w3 = nn.Linear(dim, hidden_dim, bias=False)
+        self.gate_proj = nn.Linear(dim, hidden_dim, bias=False)
+        self.down_proj = nn.Linear(hidden_dim, dim, bias=False)
+        self.up_proj = nn.Linear(dim, hidden_dim, bias=False)
 
-    def __call__(self, x) -> mx.array:
-        return self.w2(nn.silu(self.w1(x)) * self.w3(x))
+    def __call__(self, x: mx.array) -> mx.array:
+        """Forward pass
+
+        Args:
+            x (mx.array): input
+
+        Returns:
+            mx.array: output
+        """
+        return self.down_proj(nn.silu(self.gate_proj(x)) * self.up_proj(x))
 
 
 class TransformerBlock(nn.Module):
+    """Transformer block
+
+    Args:
+        dim (int): model dimension
+        n_heads (int): number of attention heads
+        n_kv_heads (int): number of key-value heads
+        hidden_dim (int): hidden dimension
+        norm_eps (float): normalization epsilon
+        head_dim (Optional[int], optional): head dimension. Defaults to None.
+        rope_traditional (bool, optional): whether to use traditional RoPE. Defaults to False.
+        rope_theta (float, optional): RoPE theta. Defaults to 1000.
+        rope_scaling (Optional[Dict[str, Union[float, str]]], optional): RoPE scaling. Defaults to None.
+    """
+
     def __init__(
         self,
         dim: int,
         n_heads: int,
         n_kv_heads: int,
-        head_dim: int,
         hidden_dim: int,
         norm_eps: float,
-        rope_traditional: bool = True,
-    ):
+        head_dim: Optional[int] = None,
+        rope_traditional: bool = False,
+        rope_theta: float = 1000,
+        rope_scaling: Optional[Dict[str, Union[float, str]]] = None,
+    ) -> None:
         super().__init__()
         self.n_heads = n_heads
         self.dim = dim
         self.attention = Attention(
-            dim=dim, n_heads=n_heads, n_kv_heads=n_kv_heads, head_dim=head_dim, rope_traditional=rope_traditional
+            dim=dim,
+            n_heads=n_heads,
+            n_kv_heads=n_kv_heads,
+            head_dim=head_dim,
+            rope_traditional=rope_traditional,
+            rope_theta=rope_theta,
+            rope_scaling=rope_scaling,
         )
-        self.feed_forward = FeedForward(dim=dim, hidden_dim=hidden_dim)
-        self.attention_norm = RMSNorm(dim, eps=norm_eps)
-        self.ffn_norm = RMSNorm(dim, eps=norm_eps)
+        self.mlp = MLP(dim=dim, hidden_dim=hidden_dim)
+        self.attention_norm = nn.RMSNorm(dim, eps=norm_eps)
+        # self.attention_norm = RMSNorm(dim, eps=norm_eps)
+        self.mlp_norm = nn.RMSNorm(dim, eps=norm_eps)
+        # self.mlp_norm = RMSNorm(dim, eps=norm_eps)
 
     def __call__(
         self,
         x: mx.array,
         mask: Optional[mx.array] = None,
-        cache: Optional[Tuple[mx.array, mx.array]] = None,
-    ) -> mx.array:
-        r, cache = self.attention(self.attention_norm(x), mask, cache)
+        kv_cache: Optional[Tuple[mx.array, mx.array]] = None,
+    ) -> Tuple[mx.array, Tuple[mx.array, mx.array]]:
+        """Forward pass
+
+        Args:
+            x (mx.array): input tokens
+            mask (Optional[mx.array], optional): attention mask. Defaults to None.
+            kv_cache (Optional[Tuple[mx.array, mx.array]], optional): key-value cache. Defaults to None.
+
+        Returns:
+            Tuple[mx.array, Tuple[mx.array, mx.array]]: output and key-value cache
+        """
+        r, kv_cache = self.attention(x=self.attention_norm(x), mask=mask, kv_cache=kv_cache)
         h = x + r
-        r = self.feed_forward(self.ffn_norm(h))
+        r = self.mlp(self.mlp_norm(h))
         out = h + r
-        return out, cache
+        return out, kv_cache
 
 
 class Transformer(nn.Module):
+    """Transformer model
+
+    Args:
+        dim (int): model dimension
+        hidden_dim (int): hidden dimension
+        vocab_size (int): vocabulary size
+        n_layers (int): number of transformer blocks
+        n_heads (int): number of attention heads
+        n_kv_heads (Optional[int]): number of key-value heads. If None, it is set to num_heads. Defaults to None.
+        head_dim (Optional[int], optional): head dimension. Defaults to None.
+        norm_eps (float): normalization epsilon. Defaults to 1e-5.
+        rope_traditional (bool, optional): whether to use traditional RoPE. Defaults to False.
+        rope_theta (float, optional): RoPE theta. Defaults to 1000.
+        rope_scaling (Optional[Dict[str, Union[float, str]]], optional): RoPE scaling. Defaults to None.
+        embed_as_head (bool, optional): whether to embed as head (for Gemma models). Defaults to False.
+    """
+
     def __init__(
         self,
         dim: int,
@@ -129,73 +210,88 @@ class Transformer(nn.Module):
         vocab_size: int,
         n_layers: int,
         n_heads: int,
-        n_kv_heads: int,
-        head_dim: int,
-        norm_eps: float,
-        rope_traditional: bool = True,
+        n_kv_heads: Optional[int] = None,
+        head_dim: Optional[int] = None,
+        norm_eps: float = 1e-5,
+        rope_traditional: bool = False,
+        rope_theta: float = 1000,
+        rope_scaling: Optional[Dict[str, Union[float, str]]] = None,
+        embed_as_head: bool = False,
     ):
         super().__init__()
         self.vocab_size = vocab_size
         self.n_layers = n_layers
         assert self.vocab_size > 0
-        self.tok_embeddings = nn.Embedding(vocab_size, dim)
+        if n_kv_heads is None:
+            n_kv_heads = n_heads
+        self.token_embed = nn.Embedding(vocab_size, dim)
         self.layers = [
             TransformerBlock(
                 dim=dim,
                 n_heads=n_heads,
                 n_kv_heads=n_kv_heads,
-                head_dim=head_dim,
                 hidden_dim=hidden_dim,
                 norm_eps=norm_eps,
+                head_dim=head_dim,
                 rope_traditional=rope_traditional,
+                rope_theta=rope_theta,
+                rope_scaling=rope_scaling,
             )
             for _ in range(n_layers)
         ]
-        self.norm = RMSNorm(dim, eps=norm_eps)
-        self.output = nn.Linear(dim, vocab_size, bias=False)
+        self.norm = nn.RMSNorm(dim, eps=norm_eps)
+        # self.norm = nn.RMSNorm(dim, eps=norm_eps)
+        if not embed_as_head:
+            self.head = nn.Linear(dim, vocab_size, bias=False)
+        else:
+            self.head = None  # type: ignore
 
-    def embed(self, inputs: mx.array, cache=None, norm: bool = False) -> mx.array:
+    def embed(
+        self, x: mx.array, kv_cache: Optional[List[Tuple[mx.array, mx.array]]] = None, norm: bool = False
+    ) -> Tuple[mx.array, Optional[List[Tuple[mx.array, mx.array]]]]:
         """Compute embedding for the input tokens.
 
         Args:
-            inputs (mx.array): input tokens
-            cache (optional): attn layer cache. Defaults to None.
+            x (mx.array): input tokens
+            kv_cache (Optional[List[Tuple[mx.array, mx.array]]]): key-value cache
             norm (bool, optional): whether to normalize the output. Defaults to False.
 
         Returns:
-            mx.array: embedded tokens
+            Tuple[mx.array, Optional[List[Tuple[mx.array, mx.array]]]]: output and key-value cache
         """
-
-        h = self.tok_embeddings(inputs)
-
-        mask = None
-        if h.shape[1] > 1:
-            mask = nn.MultiHeadAttention.create_additive_causal_mask(h.shape[1])
-            mask = mask.astype(h.dtype)
-
-        if cache is None:
-            cache = [None] * len(self.layers)
-
-        for e, layer in enumerate(self.layers):
-            h, cache[e] = layer(h, mask, cache[e])
-
-        return self.norm(h) if norm else h
-
-    def __call__(self, inputs: mx.array, cache=None):
-        h = self.tok_embeddings(inputs)
+        h = self.token_embed(x)
 
         mask = None
         if h.shape[1] > 1:
             mask = nn.MultiHeadAttention.create_additive_causal_mask(h.shape[1])
             mask = mask.astype(h.dtype)
 
-        if cache is None:
-            cache = [None] * len(self.layers)
+        if kv_cache is None:
+            kv_cache = [None] * len(self.layers)  # type: ignore
 
         for e, layer in enumerate(self.layers):
-            h, cache[e] = layer(h, mask, cache[e])
+            h, kv_cache[e] = layer(x=h, mask=mask, kv_cache=kv_cache[e])
 
-        return self.output(self.norm(h)), cache
+        return self.norm(h) if norm else h, kv_cache
+
+    def __call__(
+        self, x: mx.array, kv_cache: Optional[List[Tuple[mx.array, mx.array]]] = None
+    ) -> Tuple[mx.array, List[Tuple[mx.array, mx.array]]]:
+        """Forward pass
+
+        Args:
+            x (mx.array): input tokens
+            kv_cache (Optional[List[mx.array]], optional): key-value cache. Defaults to None.
+
+        Returns:
+            Tuple[mx.array, List[mx.array]]: output and key-value cache
+        """
+        x, kv_cache = self.embed(x, kv_cache=kv_cache, norm=True)
+        if self.head is not None:
+            out = self.head(x)
+        else:
+            out = self.token_embed.as_linear(x)
+        return out, kv_cache  # type: ignore
 
     def generate(self, x: mx.array, temp: Optional[float] = 0.0):
         """Generate tokens from a given input
@@ -211,68 +307,11 @@ class Transformer(nn.Module):
             else:
                 return mx.random.categorical(logits * (1 / temp))
 
-        logits, cache = self(x[None])
+        logits, kv_cache = self(x[None])
         y = sample(logits[:, -1, :])
         yield y
 
         while True:
-            logits, cache = self(y[:, None], cache=cache)
+            logits, kv_cache = self(y[:, None], kv_cache=kv_cache)
             y = sample(logits.squeeze(1))
             yield y
-
-
-def mistral_7B_instruct_v01() -> Transformer:
-    return Transformer(
-        dim=4096, hidden_dim=14336, vocab_size=32000, n_layers=32, n_heads=32, n_kv_heads=8, head_dim=128, norm_eps=1e-5
-    )
-
-
-def mistral_7B_instruct_v02() -> Transformer:
-    return Transformer(
-        dim=4096, hidden_dim=14336, vocab_size=32000, n_layers=32, n_heads=32, n_kv_heads=8, head_dim=128, norm_eps=1e-5
-    )
-
-
-def zephyr_7b_beta() -> Transformer:
-    return Transformer(
-        dim=4096, hidden_dim=14336, vocab_size=32000, n_layers=32, n_heads=32, n_kv_heads=8, head_dim=128, norm_eps=1e-5
-    )
-
-
-def openhermes_25_mistral_7B() -> Transformer:
-    return Transformer(
-        dim=4096, hidden_dim=14336, vocab_size=32002, n_layers=32, n_heads=32, n_kv_heads=8, head_dim=128, norm_eps=1e-5
-    )
-
-
-def e5_mistral_7b_instruct() -> Transformer:
-    return Transformer(
-        dim=4096, hidden_dim=14336, vocab_size=32000, n_layers=32, n_heads=32, n_kv_heads=8, head_dim=128, norm_eps=1e-5
-    )
-
-
-def llama_2_7B_chat() -> Transformer:
-    return Transformer(
-        dim=4096,
-        hidden_dim=11008,
-        vocab_size=32000,
-        n_layers=32,
-        n_heads=32,
-        n_kv_heads=32,
-        head_dim=128,
-        norm_eps=1e-5,
-    )
-
-
-def tiny_llama_chat() -> Transformer:
-    return Transformer(
-        dim=2048,
-        hidden_dim=5632,
-        n_heads=32,
-        n_kv_heads=4,
-        n_layers=22,
-        vocab_size=32000,
-        head_dim=64,  # 2048 / 32,
-        norm_eps=1e-5,
-        rope_traditional=False,
-    )

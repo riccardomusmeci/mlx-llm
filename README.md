@@ -1,32 +1,46 @@
 # mlx-llm
-LLM applications running on Apple Silicon in real-time thanks to [Apple MLX framework](https://github.com/ml-explore/mlx).
+Large Language Models (LLMs) applications and tools running on Apple Silicon in real-time with [Apple MLX](https://github.com/ml-explore/mlx).
 
 ![Alt Text](static/mlx-llm-demo.gif)
 
-
-Here's also a [Youtube Video](https://www.youtube.com/watch?v=vB7tk6W6VIw).
-
+Go to the entire [Youtube Video](https://www.youtube.com/watch?v=vB7tk6W6VIw).
 
 ## **How to install 🔨**
 ```
-git clone https://github.com/riccardomusmeci/mlx-llm
-cd mlx-llm
-pip install .
+pip install mlx-llm
 ```
+<!-- git clone https://github.com/riccardomusmeci/mlx-llm
+cd mlx-llm
+pip install . -->
 
 ## **Models 🧠**
+To create a model with pre-trained weights from HuggingFace:
 
-Go check [models](docs/models.md) for a summary of available models.
-
-To create a model with weights:
 ```python
 from mlx_llm.model import create_model
 
 # loading weights from HuggingFace
-model = create_model("TinyLlama-1.1B-Chat-v0.6")
+model = create_model("llama_3_8b_instruct")
+```
 
-# loading weights from local file
-model = create_model("TinyLlama-1.1B-Chat-v0.6", weights="path/to/weights.npz")
+You can also load a new version of pre-trained weights for a specific model directly from HuggingFace:
+- set `weights` by adding `hf://` before the HuggingFace repository
+- load the proper weights converter function  
+- if necessary, specify custom model configs (rope_theta, rope_traditional, vocab_size, norm_eps)
+
+Here's an example of how to to it:
+```python
+from mlx_llm.model import create_model
+from mlx_llm.model.converter import llama_to_mlxllm
+
+model = create_model(
+    model_name="llama_3_8b_instruct", # it's the base model
+    weights="hf://gradientai/Llama-3-8B-Instruct-262k", # new weights from HuggingFace
+    converter=llama_to_mlxllm, # it's the weights converter function for the base model
+    model_config={
+        "rope_theta": 207112184.0
+    }
+)
 ```
 
 To list all available models:
@@ -38,125 +52,89 @@ print(list_models())
 
 ### **Quantization 📉**
 
-Currenlty, `mlx-llm` supports only OpenHermes-2.5-Mistral-7B-4bit model from HF space. To use it:
-```python
-from mlx_llm.model import create_model
-model = create_model("OpenHermes-2.5-Mistral-7B-4bit", quantized=True)
-```
-For the other supported models, use the `quantize` function for the model.
+To quantize a model and save its weights just use:
 
 ```python
-from mlx_llm.model import create_model, quantize, save_weights
+from mlx_llm.model import create_model, quantize, get_weights
+from mlx_llm.utils.weights import save_weights
 
 # create the model from original weights
-model = create_model("TinyLlama-1.1B-Chat-v0.6")
+model = create_model("llama_3_8b_instruct")
 # quantize the model
 model = quantize(model, group_size=64, bits=4)
+# getting weights dict (similar to state_dict in PyTorch)
+weights = get_weights(model)
 # save the model
-save_weights(model, "TinyLlama-1.1B-Chat-v0.6-4bit.npz")
+save_weights(weights, "llama_3_8b_instruct-4bit.safetensors")
 ```
-
-### **Benchmarks 📊**
-You can run benchmarks with `mlx-llm` to compare mlx versions, models, and devices:
-```python
-from mlx_llm.bench import Benchmark
-
-benchmark = Benchmark(
-    apple_silicon="m1_pro_32GB",
-    model_name="TinyLlama-1.1B-Chat-v0.6",
-    quantized=True,
-    weights="path/to/weights_4bit.npz",
-    prompt="What is the meaning of life?",
-    max_tokens=100,
-    temperature=0.1,
-    verbose=False
-)
-
-benchmark.start()
-# just the output dir, the file name will be benchmark.csv
-benchmark.save("results") # if benchmark.csv is already there, it will append the new results
-```
-> [!WARNING]
-> Download first the model weights before running the benchmark (just use `create_model` and then run the test).
-
-Go to [benchmark.csv](results/benchmark.csv) to check my experiments.
-
-If you want to run benchmarks for all available LLMs:
-```bash
-cd scripts
-./run_benchmarks.sh
-```
-> [!WARNING]
-> The test will take a while since it will download all the models if not already present. Also, once test for a model is done, all the 🤗 hub cache will be deleted.
-
-> [!NOTE]
-> Run the benchmarks on your Apple Silicon device and then PR-me the results. I will be happy to add them to the [benchmark.csv](results/benchmark.csv) file.
-
 
 ### **Model Embeddings ✴️**
 Models in `mlx-llm` are able to extract embeddings from a given text.
 
 ```python
 import mlx.core as mx
-from mlx_llm.model import create_model
-from transformers import AutoTokenizer
+from mlx_llm.model import create_model, create_tokenizer
 
-model = create_model("e5-mistral-7b-instruct")
-tokenizer = AutoTokenizer.from_pretrained('intfloat/e5-mistral-7b-instruct')
+model = create_model("llama_3_8b_instruct")
+tokenizer = create_tokenizer('llama_3_8b_instruct')
 text = ["I like to play basketball", "I like to play tennis"]
 tokens = tokenizer(text)
 x = mx.array(tokens["input_ids"])
-embeds = model.embed(x)
+embeds, _ = model.embed(x, norm=True)
 ```
-
-> **For a better example go check [🤗 e5-mistral-7b-instruct page](https://huggingface.co/mlx-community/e5-mistral-7b-instruct-mlx).**
 
 ## **Applications 📁**
 
 With `mlx-llm` you can run a variety of applications, such as:
-- Chat with an LLM
-- Retrieval Augmented Generation (RAG) running locally
-
-Below an example of how to chat with an LLM, but for more details go check the [examples](examples/README.md) documentation.
+- Chat with an LLM running on Apple Silicon on a Command Line interface
+- Fine-Tuning a model with LoRA or QLoRA
+- Retrieval Augmented Generation (RAG) for Question Answering
 
 ### **Chat with LLM 📱**
 `mlx-llm` comes with tools to easily run your LLM chat on Apple Silicon.
 
-You can chat with an LLM by specifying a personality and some examples of user-model interaction (this is mandatory to have a good chat experience):
+To chat with an LLM provide:
+- a system prompt --> to set the overall tone of the LLM
+- optional previous interactions to set the mood of the conversation
+
 ```python
-from mlx_llm.playground.chat import ChatLLM
+from mlx_llm.chat import ChatSetup, LLMChat
+from mlx_llm.model import create_model, create_tokenizer
+from mlx_llm.prompt import create_prompt
 
-personality = "You're a salesman and beet farmer know as Dwight K Schrute from the TV show The Office. Dwight replies just as he would in the show. You always reply as Dwight would reply. If you don't know the answer to a question, please don't share false information."
+model_name = "tiny_llama_1.1B_chat_v1.0"
 
-# examples must be structured as below
-examples = [
-    {
-        "user": "What is your name?",
-        "model": "Dwight K Schrute",
-    },
-    {
-        "user": "What is your job?",
-        "model": "Assistant Regional Manager. Sorry, Assistant to the Regional Manager."
-    }
-]
-
-chat_llm = ChatLLM.build(
-    model_name="LLaMA-2-7B-chat",
-    tokenizer="mlx-community/Llama-2-7b-chat-mlx", # HF tokenizer or a local path to a tokenizer
-    personality=personality,
-    examples=examples,
+chat = LLMChat(
+    model_name=model_name,
+    chat_setup=ChatSetup(
+        system="You are Michael Scott from The Office. Your goal is to answer like hime, so be funny and inappropriate, but be brief.",
+        history=[
+            {"question": "What is your name?", "answer": "Michael Scott"},
+            {"question": "What is your favorite episode of The Office?", "answer": "The Dinner Party"},
+        ],
+    ),
+    quantized=False, # if you want it faster use the quantization params (e.g., group_size=64, bits=4)
 )
 
-chat_llm.run(max_tokens=500, temp=0.1)
+chat.start()
 ```
+
+### **Fine-Tuning with LoRA or QLoRA 🚀**
+```python
+raise NotImplementedError
+```
+
+### **Retrieval Augmented Generation (RAG) 📚**
+```python
+raise NotImplementedError
+```
+
 
 ## **ToDos**
 
-[ ] Chat and RAG with streamlit???
-
-[ ] Test with quantized models
-
 [ ] LoRA and QLoRA
+
+[ ] RAG
 
 ## 📧 Contact
 
