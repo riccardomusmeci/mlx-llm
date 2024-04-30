@@ -248,7 +248,7 @@ def phi3_mini_128k_instruct(
 
 @register_model("mistral_7b_instruct_v0.2")
 def mistral_7b_instruct_v02(
-    vocab_size: int = 32064, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
+    vocab_size: int = 32000, norm_eps: float = 1e-5, rope_theta: float = 1000000.0, rope_traditional: bool = False
 ) -> Tuple[Transformer, ModelConfig]:
     """Create a Mistral Instruct v0.2 Instruct model.
 
@@ -278,9 +278,45 @@ def mistral_7b_instruct_v02(
     return model, config
 
 
+@register_model("starling_lm_7b_beta")
+def starling_lm_7b_beta(
+    vocab_size: int = 32002, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a Starling-LM-7B-beta model.
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 32000.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-5.
+        rope_theta (float, optional): rope theta. Defaults to 10000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=4096,
+        hidden_dim=14336,
+        vocab_size=vocab_size,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=8,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+    )
+
+    config = ModelConfig(
+        hf=HFConfig(repo_id="Nexusflow/Starling-LM-7B-beta"),
+        tokenizer=HFConfig(repo_id="openchat/openchat-3.5-0106"),
+        converter=mistral_to_mlxllm,
+    )
+
+    return model, config
+
+
 @register_model("openhermes_2.5_mistral_7b")
 def openhermes_25_mistral_7b(
-    vocab_size: int = 32064, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
+    vocab_size: int = 32002, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
 ) -> Tuple[Transformer, ModelConfig]:
     """Create a OpenHermes 2.5 Mistral 7B model.
 
