@@ -1,7 +1,8 @@
 from ._base import Prompt
 from .gemma import GemmaPrompt
 from .llama import LLaMA2Prompt, LLaMA3Prompt, TinyLLaMAPrompt
-from .mistral import MistralPrompt
+from .mistral import MistralPrompt, StarlingPrompt
+from .openelm import OpenELMPrompt
 from .phi import Phi3Prompt
 
 PROMPT_ENTRYPOINTS = {
@@ -11,6 +12,8 @@ PROMPT_ENTRYPOINTS = {
     "mistral": MistralPrompt,
     "tinyllama": TinyLLaMAPrompt,
     "gemma": GemmaPrompt,
+    "openelm": OpenELMPrompt,
+    "starling": StarlingPrompt,
 }
 
 

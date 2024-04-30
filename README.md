@@ -19,7 +19,7 @@ Currently, out-of-the-box supported models are:
 | LLaMA 2                  |     llama_2_7b_chat_hf, llama_2_7b_hf            |
 | LLaMA 3          |  llama_3_8b, llama_3_8b_instruct              |
 | Phi3 |   phi_3_mini_4k_instruct, phi_3_mini_128k_instruct           |
-| Mistral |  mistral_7b_instruct_v0.2, openhermes_2.5_mistral_7b          |
+| Mistral |  mistral_7b_instruct_v0.2, openhermes_2.5_mistral_7b, starling_lm_7b_beta          |
 | TinyLLaMA |     tiny_llama_1.1B_chat_v1.0       |
 | Gemma |  gemma_1.1_2b_it, gemma_1.1_7b_it                    |
 | OpenELM |  openelm_270M_instruct, openelm_450M_instruct, openelm_1.1B_instruct, openelm_3B_instruct |
@@ -126,7 +126,7 @@ chat.start()
 ```
 
 > [!WARNING]
-> In current release (v1.0.4) OpenELM chat-mode is not supported since Apple did not release the chat template.
+> In current release (v1.0.5) OpenELM chat-mode is broken. I am working on fixing it.
 
 ### **Fine-Tuning with LoRA or QLoRA 🚀**
 ```python

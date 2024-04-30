@@ -3,7 +3,7 @@ from ._base import Prompt
 
 
 class MistralPrompt(Prompt):
-    """LLaMA Instruct prompt that follows this structure
+    """Mistral Instruct prompt that follows this structure
 
     [INST] {{ system_prompt }} + {{ user_prompt }} [/INST] {{ model_prompt }}</s>[INST] {{ user_prompt }} [/INST]
 
@@ -50,5 +50,49 @@ class MistralPrompt(Prompt):
                 break
             else:
                 prompt += f"{qa['answer']} {self.TEXT_END}\n"
+
+        return prompt
+
+
+class StarlingPrompt(Prompt):
+    """Starling Chat prompt that follows this structure
+
+    GPT4 Correct User: {prompt}<|end_of_turn|>GPT4 Correct Assistant: {response}<|end_of_turn|>GPT4 Correct User: {follow_up_question}<|end_of_turn|>GPT4 Correct Assistant:
+
+    Args:
+        system (str): system prompt
+    """
+
+    USER = "GPT4 Correct User:"
+    ASSISTANT = "GPT4 Correct Assistant:"
+    TEXT_END = "<|end_of_turn|>"
+
+    def __init__(self, system: str) -> None:
+        self.system = system
+
+    def prepare(self, session: Session) -> str:
+        """Prepare prompt for model input
+
+        Args:
+            session (Session): dialog session
+
+        Returns:
+            str: model input prompt
+        """
+
+        """
+        GPT4 Correct User: {prompt}<|end_of_turn|>GPT4 Correct Assistant: {response}<|end_of_turn|>GPT4 Correct User: {follow_up_question}<|end_of_turn|>GPT4 Correct Assistant:
+        """
+
+        prompt = f"{self.USER} {self.system}"
+        for i, qa in enumerate(session.history):
+            if i == 0:
+                prompt += f"{qa['question']}{self.TEXT_END}"
+            else:
+                prompt += f"{self.USER} {qa['question']}{self.TEXT_END}"
+            if qa["answer"] is None:
+                prompt += f"{self.ASSISTANT}"
+            else:
+                prompt += f"{self.ASSISTANT} {qa['answer']} {self.TEXT_END}"
 
         return prompt
