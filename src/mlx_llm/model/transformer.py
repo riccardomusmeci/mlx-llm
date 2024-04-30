@@ -36,11 +36,14 @@ class Attention(nn.Module):
         rope_traditional: bool = False,
         rope_theta: float = 1000,
         rope_scaling: Optional[Dict[str, Union[float, str]]] = None,
+        norm_qk_proj: bool = False,
+        attention_norm_eps: float = 1e-6,
     ):
         super().__init__()
 
         self.n_heads = n_heads
         self.n_kv_heads = n_kv_heads
+        self.norm_qk_proj = norm_qk_proj
 
         head_dim = dim // n_heads if head_dim is None else head_dim
 
@@ -50,6 +53,10 @@ class Attention(nn.Module):
         self.k_proj = nn.Linear(dim, n_kv_heads * head_dim, bias=False)
         self.v_proj = nn.Linear(dim, n_kv_heads * head_dim, bias=False)
         self.o_proj = nn.Linear(n_heads * head_dim, dim, bias=False)
+
+        if self.norm_qk_proj:
+            self.q_norm = nn.RMSNorm(dims=head_dim, eps=attention_norm_eps)
+            self.k_norm = nn.RMSNorm(dims=head_dim, eps=attention_norm_eps)
 
         rope_scale = 1 / rope_scaling["factor"] if rope_scaling is not None and rope_scaling["type"] == "linear" else 1  # type: ignore
 
@@ -84,6 +91,10 @@ class Attention(nn.Module):
         queries = queries.reshape(B, L, self.n_heads, -1).transpose(0, 2, 1, 3)
         keys = keys.reshape(B, L, self.n_kv_heads, -1).transpose(0, 2, 1, 3)
         values = values.reshape(B, L, self.n_kv_heads, -1).transpose(0, 2, 1, 3)
+
+        if self.norm_qk_proj:
+            queries = self.q_norm(queries)
+            keys = self.k_norm(keys)
 
         if kv_cache is not None:
             key_cache, value_cache = kv_cache
@@ -159,6 +170,8 @@ class TransformerBlock(nn.Module):
         rope_traditional: bool = False,
         rope_theta: float = 1000,
         rope_scaling: Optional[Dict[str, Union[float, str]]] = None,
+        norm_qk_proj: bool = False,
+        attention_norm_eps: float = 1e-6,
         gemma: bool = False,
     ) -> None:
         super().__init__()
@@ -172,6 +185,8 @@ class TransformerBlock(nn.Module):
             rope_traditional=rope_traditional,
             rope_theta=rope_theta,
             rope_scaling=rope_scaling,
+            norm_qk_proj=norm_qk_proj,
+            attention_norm_eps=attention_norm_eps,
         )
         self.mlp = MLP(dim=dim, hidden_dim=hidden_dim, gemma=gemma)
 
@@ -226,49 +241,63 @@ class Transformer(nn.Module):
     def __init__(
         self,
         dim: int,
-        hidden_dim: int,
+        hidden_dim: Union[int, List[int]],
         vocab_size: int,
         n_layers: int,
-        n_heads: int,
-        n_kv_heads: Optional[int] = None,
+        n_heads: Union[int, List[int]],
+        n_kv_heads: Optional[Union[int, List[int]]] = None,
         head_dim: Optional[int] = None,
         norm_eps: float = 1e-5,
         rope_traditional: bool = False,
         rope_theta: float = 1000,
         rope_scaling: Optional[Dict[str, Union[float, str]]] = None,
+        norm_qk_proj: bool = False,
+        attention_norm_eps: float = 1e-6,
         gemma: bool = False,
+        embed_as_head: bool = False,
     ):
         super().__init__()
+
+        assert vocab_size > 0
+
         self.dim = dim
         self.hidden_dim = hidden_dim
         self.vocab_size = vocab_size
         self.n_layers = n_layers
         self.gemma = gemma
-        assert self.vocab_size > 0
+        self.embed_as_head = True if self.gemma is True else embed_as_head
+
         if n_kv_heads is None:
             n_kv_heads = n_heads
+
         self.token_embed = nn.Embedding(vocab_size, self.dim)
+
+        if isinstance(hidden_dim, int):
+            hidden_dim = [hidden_dim] * n_layers
+        if isinstance(n_heads, int):
+            n_heads = [n_heads] * n_layers
+        if isinstance(n_kv_heads, int):
+            n_kv_heads = [n_kv_heads] * n_layers
+
         self.layers = [
             TransformerBlock(
                 dim=dim,
-                n_heads=n_heads,
-                n_kv_heads=n_kv_heads,
-                hidden_dim=hidden_dim,
+                n_heads=n_heads[i],
+                n_kv_heads=n_kv_heads[i],
+                hidden_dim=hidden_dim[i],
                 norm_eps=norm_eps,
                 head_dim=head_dim,
                 rope_traditional=rope_traditional,
                 rope_theta=rope_theta,
                 rope_scaling=rope_scaling,
+                norm_qk_proj=norm_qk_proj,
+                attention_norm_eps=attention_norm_eps,
                 gemma=self.gemma,
             )
-            for _ in range(n_layers)
+            for i in range(n_layers)
         ]
-        if not self.gemma:
-            self.norm = nn.RMSNorm(dim, eps=norm_eps)
-            self.head = nn.Linear(dim, vocab_size, bias=False)
-        else:
-            self.norm = RMSNorm(dim, eps=norm_eps)
-            self.head = None  # type: ignore
+        self.norm = nn.RMSNorm(dim, eps=norm_eps) if not self.gemma else RMSNorm(dim, eps=norm_eps)
+        self.head = nn.Linear(dim, vocab_size, bias=False) if not self.embed_as_head else None  # type: ignore
 
     def embed(
         self, x: mx.array, kv_cache: Optional[List[Tuple[mx.array, mx.array]]] = None, norm: bool = False
@@ -314,7 +343,7 @@ class Transformer(nn.Module):
             Tuple[mx.array, List[mx.array]]: output and key-value cache
         """
         x, kv_cache = self.embed(x, kv_cache=kv_cache, norm=True)
-        if self.gemma:
+        if self.embed_as_head:
             out = self.token_embed.as_linear(x)
         else:
             out = self.head(x)

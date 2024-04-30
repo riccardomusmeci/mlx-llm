@@ -18,5 +18,6 @@ class QuantizeConfig:
 @dataclass
 class ModelConfig:
     hf: HFConfig
+    tokenizer: Optional[HFConfig] = None
     quantize: Optional[QuantizeConfig] = None
     converter: Optional[Callable] = None

@@ -2,6 +2,8 @@ from typing import Dict, List
 
 import mlx.core as mx
 
+import torch
+
 from ..utils.weights import weights_to_mlx
 
 
@@ -134,4 +136,70 @@ def mistral_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[s
             key_map = {"embed_tokens": "token_embed", "lm_head": "head", "norm": "norm"}
             model_k = f"{key_map[k_split[0]]}.{k_split[1]}"
             model_weights[model_k] = w
+    return model_weights
+
+
+def openelm_to_mlxllm(
+    weights_paths: List[str],
+    head_dim: int,
+    n_kv_heads: List[int],
+    tensor_type: torch.dtype = torch.float32,
+    verbose: bool = False,
+) -> Dict[str, mx.array]:
+    """Convert OpenELM weights to MLX format.
+
+    Args:
+        weights_paths (List[str]): list of paths to OpenELM weights
+        tensor_type (torch.dtype, optional): tensor type. Defaults to torch.float32.
+        verbose (bool, optional): whether to print information during conversion. Defaults to False.
+
+    Returns:
+        Dict[str, mx.array]: a dict of weights in MLX format
+    """
+    model_weights = {}
+    weights = weights_to_mlx(weights_paths, tensor_type=tensor_type)
+    if verbose:
+        print("Converting OpenELM weights to mlx-llm format.")
+    for k, w in weights.items():
+        if k.startswith("transformer."):
+            k = k.replace("transformer.", "")
+        k_split = k.split(".")
+        if "qkv_proj" in k_split:
+            idx = int(k_split[1])
+            kv_dim = n_kv_heads[idx] * head_dim
+            q_dim = w.shape[0] - 2 * kv_dim
+            k_dim = v_dim = kv_dim
+            query, key, value = mx.split(w, [q_dim, q_dim + k_dim], axis=0)
+            query_key = f"layers.{k_split[1]}.attention.q_proj.weight"
+            key_key = f"layers.{k_split[1]}.attention.k_proj.weight"
+            value_key = f"layers.{k_split[1]}.attention.v_proj.weight"
+            model_weights[query_key] = query
+            model_weights[key_key] = key
+            model_weights[value_key] = value
+        elif "out_proj" in k_split:
+            model_key = f"layers.{k_split[1]}.attention.o_proj.weight"
+            model_weights[model_key] = w
+        elif "k_norm" in k_split or "q_norm" in k_split:
+            model_key = f"layers.{k_split[1]}.attention.{k_split[3]}.weight"
+            model_weights[model_key] = w
+        elif "proj_1" in k_split:
+            weight = w.reshape([2, -1, w.shape[-1]])
+            gate_proj, up_proj = weight[0], weight[1]
+            gate_key = f"layers.{k_split[1]}.mlp.gate_proj.weight"
+            up_key = f"layers.{k_split[1]}.mlp.up_proj.weight"
+            model_weights[gate_key] = gate_proj
+            model_weights[up_key] = up_proj
+        elif "proj_2" in k_split:
+            model_key = f"layers.{k_split[1]}.mlp.down_proj.weight"
+            model_weights[model_key] = w
+        elif "attn_norm" in k_split:
+            model_key = f"layers.{k_split[1]}.attention_norm.weight"
+            model_weights[model_key] = w
+        elif "ffn_norm" in k_split:
+            model_key = f"layers.{k_split[1]}.mlp_norm.weight"
+            model_weights[model_key] = w
+        else:
+            key_map = {"token_embeddings": "token_embed", "norm": "norm"}
+            model_key = f"{key_map[k_split[0]]}.weight"
+            model_weights[model_key] = w
     return model_weights

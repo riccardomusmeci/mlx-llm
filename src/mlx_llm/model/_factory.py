@@ -42,7 +42,6 @@ def create_model(
     >>> model = create_model(
             model_name="llama_3_8b_instruct", # it's the base model
             weights="hf://gradientai/Llama-3-8B-Instruct-262k", # new weights from HuggingFace
-            converter=llama_to_mlxllm, # it's the weights converter function for the base model
             model_config={ "rope_theta": 207112184.0 }
     >>> )
 
@@ -84,9 +83,11 @@ def create_model(
             repo_id=weights.replace("hf://", ""),
         )
         weights = glob.glob(os.path.join(model_path, "*.safetensors"))  # type: ignore
-        if converter is not None:
-            weights = converter(weights)
-            model = apply_weights(model, weights)  # type: ignore
+        if len(weights) == 0:
+            raise ValueError(f"No safetensors weights found in {model_path}.")
+        converter = config.converter if converter is None else converter
+        weights = converter(weights)
+        model = apply_weights(model, weights)  # type: ignore
 
     elif isinstance(weights, bool) and weights is True:
         model_path = download_from_hf(
@@ -122,5 +123,9 @@ def create_tokenizer(model_name: str) -> AutoTokenizer:
         raise ValueError(f"Unknown model name: {model_name}.")
     else:
         _, config = MODEL_ENTRYPOINTS[model_name]()
-        tokenizer = AutoTokenizer.from_pretrained(config.hf.repo_id, legacy=True)
+        if config.tokenizer is not None:
+            repo_id = config.tokenizer.repo_id
+        else:
+            repo_id = config.hf.repo_id
+        tokenizer = AutoTokenizer.from_pretrained(repo_id, legacy=True)
     return tokenizer
