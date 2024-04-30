@@ -173,3 +173,29 @@ def generate(
     tokens_per_second = len(tokens) / (tock - tick)
     if stats:
         print(f"\n\n[STATS] Tokens/sec: {tokens_per_second:.3f}")
+
+
+def make_divisible(
+    v: Union[float, int],
+    divisor: Optional[int] = 8,
+    min_value: Optional[Union[float, int]] = None,
+) -> Union[float, int]:
+    """
+    This function is taken from the original tf repo.
+    It ensures that all layers have a channel number that is divisible by the divisor
+    It can be seen at:
+    https://github.com/tensorflow/models/blob/2cfc99eff5e5eb729c6793d2f3d03aa1c9be2b15/research/slim/nets/mobilenet/mobilenet.py#L62
+    Args:
+        v: input value
+        divisor: default to 8
+        min_value: minimum divisor value
+    Returns:
+        new_v: new divisible value
+    """
+    if min_value is None:
+        min_value = divisor
+    new_v = max(min_value, int(v + divisor / 2) // divisor * divisor)
+    # Make sure that round down does not go down by more than 10%.
+    if new_v < 0.9 * v:
+        new_v += divisor
+    return new_v
