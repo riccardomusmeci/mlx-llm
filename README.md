@@ -9,11 +9,21 @@ Go to the entire [Youtube Video](https://www.youtube.com/watch?v=vB7tk6W6VIw).
 ```
 pip install mlx-llm
 ```
-<!-- git clone https://github.com/riccardomusmeci/mlx-llm
-cd mlx-llm
-pip install . -->
 
 ## **Models 🧠**
+
+Currently, out-of-the-box supported models are:
+
+| Family        |  Models |
+|---------------------|----------------|
+| LLaMA 2                  |     llama_2_7b_chat_hf, llama_2_7b_hf            |
+| LLaMA 3          |  llama_3_8b, llama_3_8b_instruct              |
+| Phi3 |   phi_3_mini_4k_instruct, phi_3_mini_128k_instruct           |
+| Mistral |  mistral_7b_instruct_v0.2, openhermes_2.5_mistral_7b          |
+| TinyLLaMA |     tiny_llama_1.1B_chat_v1.0       |
+| Gemma |  gemma_1.1_2b_it, gemma_1.1_7b_it                    |
+| OpenELM |  openelm_270M_instruct, openelm_450M_instruct, openelm_1.1B_instruct, openelm_3B_instruct |
+
 To create a model with pre-trained weights from HuggingFace:
 
 ```python
@@ -24,30 +34,27 @@ model = create_model("llama_3_8b_instruct")
 ```
 
 You can also load a new version of pre-trained weights for a specific model directly from HuggingFace:
-- set `weights` by adding `hf://` before the HuggingFace repository
-- load the proper weights converter function  
+- set `weights` by adding `hf://` before the HuggingFace repository 
 - if necessary, specify custom model configs (rope_theta, rope_traditional, vocab_size, norm_eps)
 
 Here's an example of how to to it:
 ```python
 from mlx_llm.model import create_model
-from mlx_llm.model.converter import llama_to_mlxllm
 
+# an example of loading new weights from HuggingFace
+model = create_model(
+    model_name="openelm_1.1B_instruct", # it's the base model
+    weights="hf://apple/OpenELM-1.1B", # new weights from HuggingFace
+)
+
+# an example of loading new weights from HuggingFace with custom model configs
 model = create_model(
     model_name="llama_3_8b_instruct", # it's the base model
     weights="hf://gradientai/Llama-3-8B-Instruct-262k", # new weights from HuggingFace
-    converter=llama_to_mlxllm, # it's the weights converter function for the base model
     model_config={
         "rope_theta": 207112184.0
     }
 )
-```
-
-To list all available models:
-```python
-from mlx_llm.model import list_models
-
-print(list_models())
 ```
 
 ### **Quantization 📉**
@@ -84,7 +91,6 @@ embeds, _ = model.embed(x, norm=True)
 ```
 
 ## **Applications 📁**
-
 With `mlx-llm` you can run a variety of applications, such as:
 - Chat with an LLM running on Apple Silicon on a Command Line interface
 - Fine-Tuning a model with LoRA or QLoRA
@@ -118,6 +124,9 @@ chat = LLMChat(
 
 chat.start()
 ```
+
+> [!WARNING]
+> In current release (v1.0.4) OpenELM chat-mode is not supported since Apple did not release the chat template.
 
 ### **Fine-Tuning with LoRA or QLoRA 🚀**
 ```python
