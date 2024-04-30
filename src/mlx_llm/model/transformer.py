@@ -5,12 +5,27 @@ import mlx.nn as nn
 
 
 class RMSNorm(nn.Module):
-    def __init__(self, dims: int, eps: float = 1e-5):
+    """Custom RMSNorm module
+
+    Args:
+        dims (int): model dimension
+        eps (float, optional): epsilon. Defaults to 1e-5.
+    """
+
+    def __init__(self, dims: int, eps: float = 1e-5) -> None:
         super().__init__()
         self.weight = mx.ones((dims,))
         self.eps = eps
 
-    def __call__(self, x):
+    def __call__(self, x: mx.array) -> mx.array:
+        """Forward pass
+
+        Args:
+            x (mx.array): input
+
+        Returns:
+            mx.array: output
+        """
         return mx.fast.rms_norm(x, 1.0 + self.weight, self.eps)
 
 
@@ -25,6 +40,8 @@ class Attention(nn.Module):
         rope_traditional (bool, optional): whether to use traditional RoPE. Defaults to False.
         rope_theta (float, optional): RoPE theta. Defaults to 1000.
         rope_scaling (Optional[Dict[str, Union[float, str]]], optional): RoPE scaling. Defaults to None.
+        norm_qk_proj (bool, optional): whether to normalize the queries and keys projection (for OpenELM). Defaults to False.
+        attention_norm_eps (float, optional): attention normalization epsilon (for OpenELM). Defaults to 1e-6.
     """
 
     def __init__(
@@ -38,7 +55,7 @@ class Attention(nn.Module):
         rope_scaling: Optional[Dict[str, Union[float, str]]] = None,
         norm_qk_proj: bool = False,
         attention_norm_eps: float = 1e-6,
-    ):
+    ) -> None:
         super().__init__()
 
         self.n_heads = n_heads
@@ -156,6 +173,8 @@ class TransformerBlock(nn.Module):
         rope_traditional (bool, optional): whether to use traditional RoPE. Defaults to False.
         rope_theta (float, optional): RoPE theta. Defaults to 1000.
         rope_scaling (Optional[Dict[str, Union[float, str]]], optional): RoPE scaling. Defaults to None.
+        norm_qk_proj (bool, optional): whether to normalize the queries and keys projection (for OpenELM). Defaults to False.
+        attention_norm_eps (float, optional): attention normalization epsilon (for OpenELM). Defaults to 1e-6.
         gemma (bool, optional): whether using Gemma layers. Defaults to False.
     """
 
@@ -235,6 +254,8 @@ class Transformer(nn.Module):
         rope_traditional (bool, optional): whether to use traditional RoPE. Defaults to False.
         rope_theta (float, optional): RoPE theta. Defaults to 1000.
         rope_scaling (Optional[Dict[str, Union[float, str]]], optional): RoPE scaling. Defaults to None.
+        norm_qk_proj (bool, optional): whether to normalize the queries and keys projection (for OpenELM). Defaults to False.
+        attention_norm_eps (float, optional): attention normalization epsilon (for OpenELM). Defaults to 1e-6.
         gemma (bool, optional): whether to use Gemma Transformer. Defaults to False.
     """
 

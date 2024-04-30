@@ -1,7 +1,6 @@
 from typing import Dict, List
 
 import mlx.core as mx
-
 import torch
 
 from ..utils.weights import weights_to_mlx
@@ -168,7 +167,7 @@ def openelm_to_mlxllm(
             idx = int(k_split[1])
             kv_dim = n_kv_heads[idx] * head_dim
             q_dim = w.shape[0] - 2 * kv_dim
-            k_dim = v_dim = kv_dim
+            k_dim = kv_dim
             query, key, value = mx.split(w, [q_dim, q_dim + k_dim], axis=0)
             query_key = f"layers.{k_split[1]}.attention.q_proj.weight"
             key_key = f"layers.{k_split[1]}.attention.k_proj.weight"

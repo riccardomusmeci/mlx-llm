@@ -1,6 +1,6 @@
 from ._base import Prompt
-from .llama import LLaMA2Prompt, LLaMA3Prompt, TinyLLaMAPrompt
 from .gemma import GemmaPrompt
+from .llama import LLaMA2Prompt, LLaMA3Prompt, TinyLLaMAPrompt
 from .mistral import MistralPrompt
 from .phi import Phi3Prompt
 

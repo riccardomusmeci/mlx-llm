@@ -1,9 +1,9 @@
+from functools import partial
 from typing import Callable, Dict, Optional, Tuple
 
 from ._config import HFConfig, ModelConfig, QuantizeConfig
-from .converter import llama_to_mlxllm, mistral_to_mlxllm, phi3_to_mlxllm, openelm_to_mlxllm
-from functools import partial
 from ._utils import make_divisible
+from .converter import llama_to_mlxllm, mistral_to_mlxllm, openelm_to_mlxllm, phi3_to_mlxllm
 from .transformer import Transformer
 
 MODEL_ENTRYPOINTS = {}
