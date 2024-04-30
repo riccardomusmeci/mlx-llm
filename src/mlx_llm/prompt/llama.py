@@ -3,7 +3,7 @@ from ._base import Prompt
 
 
 class LLaMA2Prompt(Prompt):
-    """LLaMA Instruct prompt that follows this structure
+    """LLaMA 2 Instruct prompt that follows this structure
 
     [INST] <<SYS>>
     {{ system_prompt }}
@@ -112,7 +112,7 @@ class TinyLLaMAPrompt(Prompt):
 
 
 class LLaMA3Prompt(Prompt):
-    """LLaMA Instruct prompt that follows this structure
+    """LLaMA 3 Instruct prompt that follows this structure
 
     <|begin_of_text|><|start_header_id|>system<|end_header_id|>
 

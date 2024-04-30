@@ -126,7 +126,7 @@ chat.start()
 ```
 
 > [!WARNING]
-> In current release (v1.0.4) OpenELM chat-mode is not supported since Apple did not release the chat template.
+> In current release (v1.0.5) OpenELM chat-mode is broken. I am working on fixing it.
 
 ### **Fine-Tuning with LoRA or QLoRA 🚀**
 ```python
