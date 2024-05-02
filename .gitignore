@@ -132,3 +132,6 @@ dmypy.json
 *.DS_Store
 ./utils.txt
 local/*
+
+# Jetbrains IDEs
+.idea/
