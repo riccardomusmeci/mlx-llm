@@ -177,10 +177,10 @@ def llama_3_8b_instruct(
 def llama_3_8b_instruct(
         vocab_size: int = 128288, norm_eps: float = 1e-5, rope_theta: float = 500000.0, rope_traditional: bool = False
 ) -> Tuple[Transformer, ModelConfig]:
-    """Create a LLaMA 3 8B Instruct model.
+    """Create a Hermes 2 Pro LLaMA 3 8B Instruct model.
 
     Args:
-        vocab_size (int, optional): vocab size. Defaults to 128256.
+        vocab_size (int, optional): vocab size. Defaults to 128288.
         norm_eps (float, optional): norm epsilon. Defaults to 1e-5.
         rope_theta (int, optional): rope theta. Defaults to 500000.0.
         rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
