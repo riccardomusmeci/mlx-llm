@@ -4,6 +4,7 @@ from .llama import LLaMA2Prompt, LLaMA3Prompt, TinyLLaMAPrompt
 from .mistral import MistralPrompt, StarlingPrompt
 from .openelm import OpenELMPrompt
 from .phi import Phi3Prompt
+from .hermes import HermesPrompt
 
 PROMPT_ENTRYPOINTS = {
     "llama2": LLaMA2Prompt,
@@ -14,10 +15,16 @@ PROMPT_ENTRYPOINTS = {
     "gemma": GemmaPrompt,
     "openelm": OpenELMPrompt,
     "starling": StarlingPrompt,
+    "hermes": HermesPrompt,
 }
 
+def list_prompts() -> None:
+    """List all available prompts."""
+    print("Available prompts based on model families:")
+    for model_family in list(PROMPT_ENTRYPOINTS.keys()):
+        print(f"\t- {model_family}")
 
-def create_prompt(model_name: str, system: str = "") -> Prompt:
+def create_prompt(model_family: str, system: str = "") -> Prompt:
     """Create prompt based on model family
 
     Args:
@@ -28,16 +35,6 @@ def create_prompt(model_name: str, system: str = "") -> Prompt:
         Prompt: prompt class
     """
 
-    model_family = model_name.replace("_", "").replace(".", "").replace("-", "").lower()
     found = False
-    for k in PROMPT_ENTRYPOINTS.keys():
-        if k in model_family:
-            model_family = k
-            found = True
-            break
-    if not found:
-        raise ValueError(
-            f"Model {model_name} not found in available prompts. Familes available: {list(PROMPT_ENTRYPOINTS.keys())}"
-        )
-
+    assert model_family in PROMPT_ENTRYPOINTS.keys(), f"Model family {model_family} not found in available prompts."
     return PROMPT_ENTRYPOINTS[model_family](system=system)  # type: ignore

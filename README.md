@@ -17,7 +17,7 @@ Currently, out-of-the-box supported models are:
 | Family        |  Models |
 |---------------------|----------------|
 | LLaMA 2                  |     llama_2_7b_chat_hf, llama_2_7b_hf            |
-| LLaMA 3          |  llama_3_8b, llama_3_8b_instruct              |
+| LLaMA 3          |  llama_3_8b, llama_3_8b_instruct, hermes_2_pro_llama_3_8b              |
 | Phi3 |   phi_3_mini_4k_instruct, phi_3_mini_128k_instruct           |
 | Mistral |  mistral_7b_instruct_v0.2, openhermes_2.5_mistral_7b, starling_lm_7b_beta          |
 | TinyLLaMA |     tiny_llama_1.1B_chat_v1.0       |
@@ -112,6 +112,7 @@ model_name = "tiny_llama_1.1B_chat_v1.0"
 
 chat = LLMChat(
     model_name=model_name,
+    prompt_family="tinyllama",
     chat_setup=ChatSetup(
         system="You are Michael Scott from The Office. Your goal is to answer like hime, so be funny and inappropriate, but be brief.",
         history=[
@@ -127,6 +128,9 @@ chat.start()
 
 > [!WARNING]
 > In current release (v1.0.5) OpenELM chat-mode is broken. I am working on fixing it.
+
+> [!WARNING]
+> In current release (v1.0.5) chat mode is supported only for registered models and mode with other HF weights from HuggingFace is not supported.
 
 ### **Fine-Tuning with LoRA or QLoRA 🚀**
 ```python
