@@ -173,6 +173,41 @@ def llama_3_8b_instruct(
     )
     return model, config
 
+@register_model("hermes_2_pro_llama_3_8b")
+def hermes_2_pro_llama_3_8b(
+    vocab_size: int = 128288, norm_eps: float = 1e-5, rope_theta: float = 500000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a Hermes 2 Pro Llama 3 8B model.
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 128288.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-5.
+        rope_theta (float, optional): rope theta. Defaults to 500000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=4096,
+        hidden_dim=14336,
+        vocab_size=vocab_size,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=8,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+    )
+    
+    config = ModelConfig(
+        hf=HFConfig(
+            repo_id="NousResearch/Hermes-2-Pro-Llama-3-8B",
+        ),
+        converter=llama_to_mlxllm,
+    )
+    return model, config
+
 
 @register_model("phi_3_mini_4k_instruct")
 def phi3_mini_4k_instruct(
