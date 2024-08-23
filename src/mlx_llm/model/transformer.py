@@ -213,8 +213,8 @@ class TransformerBlock(nn.Module):
             self.attention_norm = nn.RMSNorm(dim, eps=norm_eps)
             self.mlp_norm = nn.RMSNorm(dim, eps=norm_eps)
         else:
-            self.attention_norm = RMSNorm(dim, eps=norm_eps)
-            self.mlp_norm = RMSNorm(dim, eps=norm_eps)
+            self.attention_norm = RMSNorm(dim, eps=norm_eps)  # type: ignore
+            self.mlp_norm = RMSNorm(dim, eps=norm_eps)  # type: ignore
 
     def __call__(
         self,
@@ -367,7 +367,7 @@ class Transformer(nn.Module):
         if self.embed_as_head:
             out = self.token_embed.as_linear(x)
         else:
-            out = self.head(x)
+            out = self.head(x)  # type: ignore
         return out, kv_cache  # type: ignore
 
     def generate(self, x: mx.array, temp: Optional[float] = 0.0):
