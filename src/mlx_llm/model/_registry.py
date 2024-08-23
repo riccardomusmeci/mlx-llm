@@ -173,6 +173,7 @@ def llama_3_8b_instruct(
     )
     return model, config
 
+
 @register_model("hermes_2_pro_llama_3_8b")
 def hermes_2_pro_llama_3_8b(
     vocab_size: int = 128288, norm_eps: float = 1e-5, rope_theta: float = 500000.0, rope_traditional: bool = False
@@ -199,7 +200,7 @@ def hermes_2_pro_llama_3_8b(
         rope_theta=rope_theta,
         rope_traditional=rope_traditional,
     )
-    
+
     config = ModelConfig(
         hf=HFConfig(
             repo_id="NousResearch/Hermes-2-Pro-Llama-3-8B",
@@ -275,6 +276,42 @@ def phi3_mini_128k_instruct(
     config = ModelConfig(
         hf=HFConfig(
             repo_id="microsoft/Phi-3-mini-128k-instruct",
+        ),
+        converter=phi3_to_mlxllm,
+    )
+    return model, config
+
+
+@register_model("phi_3.5_mini_instruct")
+def phi35_mini_instruct(
+    vocab_size: int = 32064, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a Phi3.5 Mini Instruct model.
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 32064.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-5.
+        rope_theta (float, optional): rope theta. Defaults to 10000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=3072,
+        hidden_dim=8192,
+        vocab_size=vocab_size,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=32,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+    )
+
+    config = ModelConfig(
+        hf=HFConfig(
+            repo_id="microsoft/Phi-3.5-mini-instruct",
         ),
         converter=phi3_to_mlxllm,
     )
@@ -573,7 +610,7 @@ def openelm_3B(
 
     model = Transformer(
         dim=dim,
-        hidden_dim=hidden_dim,
+        hidden_dim=hidden_dim,  # type: ignore
         vocab_size=vocab_size,
         n_layers=36,
         n_heads=n_heads,
@@ -645,7 +682,7 @@ def openelm_11B(
 
     model = Transformer(
         dim=dim,
-        hidden_dim=hidden_dim,
+        hidden_dim=hidden_dim,  # type: ignore
         vocab_size=vocab_size,
         n_layers=28,
         n_heads=n_heads,
@@ -709,7 +746,7 @@ def openelm_450M(
 
     model = Transformer(
         dim=dim,
-        hidden_dim=hidden_dim,
+        hidden_dim=hidden_dim,  # type: ignore
         vocab_size=vocab_size,
         n_layers=20,
         n_heads=n_heads,
@@ -752,7 +789,7 @@ def openelm_270M(
 
     model = Transformer(
         dim=dim,
-        hidden_dim=hidden_dim,
+        hidden_dim=hidden_dim,  # type: ignore
         vocab_size=vocab_size,
         n_layers=16,
         n_heads=n_heads,
