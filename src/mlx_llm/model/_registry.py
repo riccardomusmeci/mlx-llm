@@ -520,6 +520,78 @@ def gemma_7b_it(
     return model, config
 
 
+@register_model("gemma_2_2b_it")
+def gemma_2_2b_it(
+    vocab_size: int = 256000, norm_eps: float = 1e-6, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a Gemma 2 2B model
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 256000.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-6.
+        rope_theta (float, optional): rope theta. Defaults to 10000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=2304,
+        hidden_dim=9216,
+        vocab_size=vocab_size,
+        n_layers=26,
+        n_heads=8,
+        n_kv_heads=4,
+        head_dim=256,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+        gemma=True,
+        gemma2=True,
+        embed_as_head=True,
+    )
+
+    config = ModelConfig(hf=HFConfig(repo_id="google/gemma-2-2b-it"), converter=llama_to_mlxllm)
+
+    return model, config
+
+
+@register_model("gemma_2_9b_it")
+def gemma_2_9b_it(
+    vocab_size: int = 256000, norm_eps: float = 1e-6, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a Gemma 2 9B model
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 256000.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-6.
+        rope_theta (float, optional): rope theta. Defaults to 10000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+    model = Transformer(
+        dim=3584,
+        hidden_dim=14336,
+        vocab_size=vocab_size,
+        n_layers=42,
+        n_heads=16,
+        n_kv_heads=8,
+        head_dim=256,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+        gemma=True,
+        gemma2=True,
+        embed_as_head=True,
+    )
+
+    config = ModelConfig(hf=HFConfig(repo_id="google/gemma-2-9b-it"), converter=llama_to_mlxllm)
+
+    return model, config
+
+
 @register_model("openelm_3B_instruct")
 def openelm_3B(
     vocab_size: int = 32000, norm_eps: float = 1e-5, rope_theta: float = 10000, rope_traditional: bool = False

@@ -7,10 +7,10 @@ from ..utils.weights import weights_to_mlx
 
 
 def llama_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str, mx.array]:
-    """Convert LLaMA 3 8B weights to MLX format.
+    """Convert LLaMA-type weights to MLX format.
 
     Args:
-        weights_paths (List[str]): list of paths to LLaMA 3 8B weights
+        weights_paths (List[str]): list of paths to LLaMA-type weights
         verbose (bool, optional): whether to print information during conversion. Defaults to False.
 
     Returns:
@@ -20,7 +20,7 @@ def llama_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str
     model_weights = {}
     weights = weights_to_mlx(weights_paths)
     if verbose:
-        print("Converting LLaMA weights to mlx-llm format.")
+        print("Converting LLaMA-type weights to mlx-llm format.")
     for k, w in weights.items():
         if k.startswith("model."):
             k = k.replace("model.", "")
@@ -36,7 +36,12 @@ def llama_to_mlxllm(weights_paths: List[str], verbose: bool = False) -> Dict[str
                 model_k = k
                 model_weights[model_k] = w
             else:
-                key_map = {"input_layernorm": "attention_norm", "post_attention_layernorm": "mlp_norm"}
+                key_map = {
+                    "input_layernorm": "attention_norm",
+                    "post_attention_layernorm": "mlp_norm",
+                    "pre_feedforward_layernorm": "pre_mlp_norm",
+                    "post_feedforward_layernorm": "post_mlp_norm",
+                }
                 model_k = f"{k_split[0]}.{k_split[1]}.{key_map[k_split[2]]}.{k_split[3]}"
                 model_weights[model_k] = w
         else:

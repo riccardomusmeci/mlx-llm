@@ -176,6 +176,7 @@ class TransformerBlock(nn.Module):
         norm_qk_proj (bool, optional): whether to normalize the queries and keys projection (for OpenELM). Defaults to False.
         attention_norm_eps (float, optional): attention normalization epsilon (for OpenELM). Defaults to 1e-6.
         gemma (bool, optional): whether using Gemma layers. Defaults to False.
+        gemma2 (bool, optional): whether using Gemma2 layers. Defaults to False.
     """
 
     def __init__(
@@ -192,6 +193,7 @@ class TransformerBlock(nn.Module):
         norm_qk_proj: bool = False,
         attention_norm_eps: float = 1e-6,
         gemma: bool = False,
+        gemma2: bool = False,
     ) -> None:
         super().__init__()
         self.n_heads = n_heads
@@ -208,13 +210,16 @@ class TransformerBlock(nn.Module):
             attention_norm_eps=attention_norm_eps,
         )
         self.mlp = MLP(dim=dim, hidden_dim=hidden_dim, gemma=gemma)
-
+        self.gemma2 = gemma2
         if not gemma:
             self.attention_norm = nn.RMSNorm(dim, eps=norm_eps)
             self.mlp_norm = nn.RMSNorm(dim, eps=norm_eps)
         else:
             self.attention_norm = RMSNorm(dim, eps=norm_eps)  # type: ignore
             self.mlp_norm = RMSNorm(dim, eps=norm_eps)  # type: ignore
+            if gemma2:
+                self.pre_mlp_norm = RMSNorm(dim, eps=norm_eps)  # type: ignore
+                self.post_mlp_norm = RMSNorm(dim, eps=norm_eps)  # type: ignore
 
     def __call__(
         self,
@@ -233,8 +238,15 @@ class TransformerBlock(nn.Module):
             Tuple[mx.array, Tuple[mx.array, mx.array]]: output and key-value cache
         """
         r, kv_cache = self.attention(x=self.attention_norm(x), mask=mask, kv_cache=kv_cache)
-        h = x + r
-        r = self.mlp(self.mlp_norm(h))
+        if self.gemma2:
+            h = x + self.mlp_norm(r)
+        else:
+            h = x + r
+        if self.gemma2:
+            r = self.mlp(self.pre_mlp_norm(h))
+            r = self.post_mlp_norm(r)
+        else:
+            r = self.mlp(self.mlp_norm(h))
         out = h + r
         return out, kv_cache
 
@@ -257,6 +269,7 @@ class Transformer(nn.Module):
         norm_qk_proj (bool, optional): whether to normalize the queries and keys projection (for OpenELM). Defaults to False.
         attention_norm_eps (float, optional): attention normalization epsilon (for OpenELM). Defaults to 1e-6.
         gemma (bool, optional): whether to use Gemma Transformer. Defaults to False.
+        gemma2 (bool, optional): whether to use Gemma2 Transformer. Defaults to False.
     """
 
     def __init__(
@@ -275,6 +288,7 @@ class Transformer(nn.Module):
         norm_qk_proj: bool = False,
         attention_norm_eps: float = 1e-6,
         gemma: bool = False,
+        gemma2: bool = False,
         embed_as_head: bool = False,
     ):
         super().__init__()
@@ -286,6 +300,9 @@ class Transformer(nn.Module):
         self.vocab_size = vocab_size
         self.n_layers = n_layers
         self.gemma = gemma
+        self.gemma2 = gemma2
+        if gemma2 and not gemma:
+            raise ValueError("Gemma2 can only be used with Gemma")
         self.embed_as_head = True if self.gemma is True else embed_as_head
 
         if n_kv_heads is None:
@@ -314,6 +331,7 @@ class Transformer(nn.Module):
                 norm_qk_proj=norm_qk_proj,
                 attention_norm_eps=attention_norm_eps,
                 gemma=self.gemma,
+                gemma2=self.gemma2,
             )
             for i in range(n_layers)
         ]
