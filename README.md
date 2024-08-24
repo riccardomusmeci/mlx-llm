@@ -21,7 +21,7 @@ Currently, out-of-the-box supported models are:
 | Phi3 |   phi_3_mini_4k_instruct, phi_3_mini_128k_instruct, phi_3.5_mini_instruct        |
 | Mistral |  mistral_7b_instruct_v0.2, openhermes_2.5_mistral_7b, starling_lm_7b_beta          |
 | TinyLLaMA |     tiny_llama_1.1B_chat_v1.0       |
-| Gemma |  gemma_1.1_2b_it, gemma_1.1_7b_it                    |
+| Gemma |  gemma_1.1_2b_it, gemma_1.1_7b_it, gemma_2_2b_it, gemma_2_9b_it                    |
 | OpenELM |  openelm_270M_instruct, openelm_450M_instruct, openelm_1.1B_instruct, openelm_3B_instruct |
 
 To create a model with pre-trained weights from HuggingFace:
@@ -114,7 +114,7 @@ chat = LLMChat(
     model_name=model_name,
     prompt_family="tinyllama",
     chat_setup=ChatSetup(
-        system="You are Michael Scott from The Office. Your goal is to answer like hime, so be funny and inappropriate, but be brief.",
+        system="You are Michael Scott from The Office. Your goal is to answer like him, so be funny and inappropriate, but be brief.",
         history=[
             {"question": "What is your name?", "answer": "Michael Scott"},
             {"question": "What is your favorite episode of The Office?", "answer": "The Dinner Party"},
@@ -127,7 +127,7 @@ chat.start()
 ```
 
 > [!WARNING]
-> In current release (v1.0.5) OpenELM chat-mode is broken. I am working on fixing it.
+> OpenELM chat-mode is broken. I am working on fixing it.
 
 > [!WARNING]
 > In current release (v1.0.5) chat mode is supported only for registered models and mode with other HF weights from HuggingFace is not supported.
