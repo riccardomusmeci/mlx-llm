@@ -19,7 +19,7 @@ class ChatSetup:
     """
 
     system: str
-    history: List[Dict[str, str]] = ()
+    history: List[Dict[str, str]] = ()  # type: ignore
 
     def session(self) -> Session:
         """Create session

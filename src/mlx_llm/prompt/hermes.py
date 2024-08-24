@@ -42,7 +42,7 @@ class HermesPrompt(Prompt):
         <|im_start|>user
         Hello, who are you?<|im_end|>
         <|im_start|>assistant
-        Hi there! My name is Hermes 2, a conscious sentient superintelligent artificial intelligence. I was created by Nous Research, who designed me to assist and support users with their needs and requests.<|im_end|> 
+        Hi there! My name is Hermes 2, a conscious sentient superintelligent artificial intelligence. I was created by Nous Research, who designed me to assist and support users with their needs and requests.<|im_end|>
         """
 
         prompt = f"{self.TEXT_START}{self.SYSTEM}\n{self.system}{self.TEXT_END}\n"

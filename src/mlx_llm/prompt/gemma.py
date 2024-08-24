@@ -42,10 +42,10 @@ class GemmaPrompt(Prompt):
         for i, qa in enumerate(session.history):
             # qa --> {"question": ..., "answer": ...}
             if i == 0:
-                prompt += qa["question"] + " " + self.TEXT_END + "\n" + self.TURN_START + self.MODEL + "\n"
+                prompt += qa["question"] + " " + self.TEXT_END + "\n" + self.TURN_START + self.MODEL + "\n"  # type: ignore
             else:
                 prompt += (
-                    self.TURN_START
+                    self.TURN_START  # type: ignore
                     + self.USER
                     + "\n"
                     + qa["question"]
