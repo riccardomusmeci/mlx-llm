@@ -23,6 +23,7 @@ Currently, out-of-the-box supported models are:
 | TinyLLaMA |     tiny_llama_1.1B_chat_v1.0       |
 | Gemma |  gemma_1.1_2b_it, gemma_1.1_7b_it, gemma_2_2b_it, gemma_2_9b_it                    |
 | OpenELM |  openelm_270M_instruct, openelm_450M_instruct, openelm_1.1B_instruct, openelm_3B_instruct |
+| SmolLM2 |  smollm2_1.7B_instruct, smollm2_360M_instruct, smollm2_135M_instruct |
 
 To create a model with pre-trained weights from HuggingFace:
 
@@ -132,7 +133,8 @@ chat.start()
 > [!WARNING]
 > In current release (v1.0.5) chat mode is supported only for registered models and mode with other HF weights from HuggingFace is not supported.
 
-### **Fine-Tuning with LoRA or QLoRA 🚀**
+### **Fine-Tuning with LoRA 🧑‍🍳**
+
 ```python
 raise NotImplementedError
 ```
@@ -145,7 +147,7 @@ raise NotImplementedError
 
 ## **ToDos**
 
-[ ] LoRA and QLoRA
+[ x ] LoRA and QLoRA (WIP)
 
 [ ] RAG
 

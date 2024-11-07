@@ -887,3 +887,81 @@ def openelm_270M(
     )
 
     return model, config
+
+@register_model("smollm2_1.7B_instruct")
+def smollm2_1_7B_instruct(
+    vocab_size: int = 49152, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    
+    model = Transformer(
+        dim=2048,
+        hidden_dim=8192,
+        vocab_size=vocab_size,
+        n_layers=24,
+        n_heads=32,
+        n_kv_heads=32,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+        embed_as_head=True,
+    )
+
+    config = ModelConfig(
+        hf=HFConfig(
+            repo_id="HuggingFaceTB/SmolLM2-1.7B-Instruct",
+        ),
+        converter=llama_to_mlxllm,
+    )
+    return model, config
+
+@register_model("smollm2_360M_instruct")
+def smollm2_360M_instruct(
+    vocab_size: int = 49152, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    
+    model = Transformer(
+        dim=960,
+        hidden_dim=2560,
+        vocab_size=vocab_size,
+        n_layers=32,
+        n_heads=15,
+        n_kv_heads=5,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+        embed_as_head=True,
+    )
+
+    config = ModelConfig(
+        hf=HFConfig(
+            repo_id="HuggingFaceTB/SmolLM2-360M-Instruct",
+        ),
+        converter=llama_to_mlxllm,
+    )
+    return model, config
+
+@register_model("smollm2_135M_instruct")
+def smollm2_135M_instruct(
+    vocab_size: int = 49152, norm_eps: float = 1e-5, rope_theta: float = 10000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    
+    model = Transformer(
+        dim=576,
+        hidden_dim=1536,
+        vocab_size=vocab_size,
+        n_layers=30,
+        n_heads=9,
+        n_kv_heads=3,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+        embed_as_head=True,
+    )
+
+    config = ModelConfig(
+        hf=HFConfig(
+            repo_id="HuggingFaceTB/SmolLM2-135M-Instruct",
+        ),
+        converter=llama_to_mlxllm,
+    )
+    return model, config
