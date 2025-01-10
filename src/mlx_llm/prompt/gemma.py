@@ -3,7 +3,7 @@ from ._base import Prompt
 
 
 class GemmaPrompt(Prompt):
-    """LLaMA Instruct prompt that follows this structure
+    """Gemma prompt that follows this structure
 
     <bos><start_of_turn>user
     Write a hello world program<end_of_turn>

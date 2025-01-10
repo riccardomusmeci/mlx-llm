@@ -1,6 +1,6 @@
 import glob
 import os
-from typing import Any, Callable, Dict, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import mlx.core as mx
 import mlx.nn as nn
@@ -13,16 +13,15 @@ from ._utils import apply_weights, load_weights, quantize
 __all__ = ["list_models", "create_model"]
 
 
-def list_models() -> None:
+def list_models() -> List[str]:
     """List all available LLM models."""
-    print("Available models:")
-    for model_name in list(MODEL_ENTRYPOINTS.keys()):
-        print(f"\t- {model_name}")
+    all_models = list(MODEL_ENTRYPOINTS.keys())
+    return all_models
 
 
 def create_model(
     model_name: str,
-    weights: Union[str, bool] = True,
+    weights: Union[List[str], str, bool] = True,
     strict: bool = False,
     converter: Optional[Callable] = None,
     verbose: bool = False,
@@ -36,7 +35,7 @@ def create_model(
     >>> from mlx_llm.model import create_model
 
     >>> # Create a LLaMA 3 8B model with pretrained weights from HF.
-    >>> model = create_model('llama_2_8b_instruct')
+    >>> model = create_model('llama_3_8b_instruct')
 
     >>> # Create a LLaMA 3 8B model with pretrained weights from HF from another repository.
     >>> model = create_model(
@@ -67,8 +66,6 @@ def create_model(
     if model_name not in MODEL_ENTRYPOINTS:
         raise ValueError(f"Unknown model name: {model_name}.")
 
-    # model -> Transformer
-    # config -> ModelConfig
     if model_config is None:
         model_config = {}
     model, config = MODEL_ENTRYPOINTS[model_name](**model_config)
@@ -104,11 +101,12 @@ def create_model(
     return model
 
 
-def create_tokenizer(model_name: str) -> AutoTokenizer:
+def create_tokenizer(model_name: Optional[str] = None, path: Optional[str] = None) -> AutoTokenizer:
     """Create a tokenizer for a LLM model.
 
     Args:
-        model_name (str): model name
+        model_name (Optional[str], optional): model name. Defaults to None.
+        path (Optional[str], optional): path to local tokenizer. Defaults to None.
 
     Raises:
         ValueError: Unknown model name
@@ -116,16 +114,23 @@ def create_tokenizer(model_name: str) -> AutoTokenizer:
     Returns:
         AutoTokenizer: tokenizer
     """
-    if model_name.startswith("hf://"):
-        repo_id = model_name.replace("hf://", "")
-        tokenizer = AutoTokenizer.from_pretrained(repo_id, legacy=True)
-    elif model_name not in MODEL_ENTRYPOINTS:
-        raise ValueError(f"Unknown model name: {model_name}.")
-    else:
-        _, config = MODEL_ENTRYPOINTS[model_name]()
-        if config.tokenizer is not None:
-            repo_id = config.tokenizer.repo_id
+    # if both model_name and path are None, raise an error
+    if model_name is None and path is None:
+        raise ValueError("Either model_name or path must be provided.")
+
+    # if path is given, load the tokenizer from the path
+    if path is not None and os.path.isdir(path):
+        return AutoTokenizer.from_pretrained(path, legacy=True)
+
+    if model_name is not None:
+        if model_name.startswith("hf://"):
+            repo_id = model_name.replace("hf://", "")
+        elif model_name in MODEL_ENTRYPOINTS:
+            _, config = MODEL_ENTRYPOINTS[model_name]()
+            repo_id = config.tokenizer.repo_id if config.tokenizer else config.hf.repo_id
         else:
-            repo_id = config.hf.repo_id
-        tokenizer = AutoTokenizer.from_pretrained(repo_id, legacy=True)
-    return tokenizer
+            raise ValueError(f"Unknown model name: {model_name}.")
+
+        return AutoTokenizer.from_pretrained(repo_id, legacy=True)
+
+    raise ValueError("Invalid arguments: model_name or path must be provided.")
