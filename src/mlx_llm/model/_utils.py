@@ -76,6 +76,8 @@ def load_weights(
             continue
         else:
             pretrained_w = pretrained_weights[k]
+            if verbose:
+                print(f"> [SUCCESS] Found key {k} in weights file")
             # checking if pretrained_w has the same shape as w
             if pretrained_w.shape != w.shape:
                 if strict:
@@ -89,30 +91,21 @@ def load_weights(
     return model
 
 
-def get_weights(model: nn.Module) -> dict:
-    """Return the model weights dict.
+def get_weights(model: nn.Module, trainable: bool = False) -> dict:
+    """Return the model weights dict. If trainable is True, return only trainable parameters.
 
     Args:
         model (nn.Module): a model
+        trainable (bool, optional): whether to return trainable parameters. Defaults to False.
 
     Returns:
         dict: model weights dict
     """
-    state_dict = dict(tree_flatten(model.parameters()))
+    if trainable:
+        state_dict = dict(tree_flatten(model.trainable_parameters()))
+    else:
+        state_dict = dict(tree_flatten(model.parameters()))
     return state_dict
-
-
-def num_params(model: nn.Module) -> int:
-    """Return the number of parameters in the model (in billions).
-
-    Args:
-        model (nn.Module): a model
-
-    Returns:
-        int: number of parameters (in billions)
-    """
-    nparams = sum(x.size for k, x in tree_flatten(model.parameters())) / 10**9
-    return round(nparams, 2)
 
 
 def quantize(model: nn.Module, group_size: int, bits: int) -> nn.Module:
