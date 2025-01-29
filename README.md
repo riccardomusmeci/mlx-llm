@@ -91,12 +91,6 @@ x = mx.array(tokens["input_ids"])
 embeds, _ = model.embed(x, norm=True)
 ```
 
-## **Applications 📁**
-With `mlx-llm` you can run a variety of applications, such as:
-- Chat with an LLM running on Apple Silicon on a Command Line interface
-- Fine-Tuning a model with LoRA or QLoRA
-- Retrieval Augmented Generation (RAG) for Question Answering
-
 ### **Chat with LLM 📱**
 `mlx-llm` comes with tools to easily run your LLM chat on Apple Silicon.
 
