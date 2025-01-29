@@ -174,6 +174,43 @@ def llama_3_8b_instruct(
     return model, config
 
 
+@register_model("deepseek_r1_distill_llama_8b")
+def deepseek_r1_distill_llama_8b(
+    vocab_size: int = 128256, norm_eps: float = 1e-5, rope_theta: float = 500000.0, rope_traditional: bool = False
+) -> Tuple[Transformer, ModelConfig]:
+    """Create a LLaMA 3 8B Instruct model.
+
+    Args:
+        vocab_size (int, optional): vocab size. Defaults to 128256.
+        norm_eps (float, optional): norm epsilon. Defaults to 1e-5.
+        rope_theta (int, optional): rope theta. Defaults to 500000.0.
+        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
+
+    Returns:
+        Tuple[Transformer, ModelConfig]: model, config
+    """
+
+    model = Transformer(
+        dim=4096,
+        hidden_dim=14336,
+        vocab_size=vocab_size,
+        n_layers=32,
+        n_heads=32,
+        n_kv_heads=8,
+        norm_eps=norm_eps,
+        rope_theta=rope_theta,
+        rope_traditional=rope_traditional,
+    )
+
+    config = ModelConfig(
+        hf=HFConfig(
+            repo_id="deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+        ),
+        converter=llama_to_mlxllm,
+    )
+    return model, config
+
+
 @register_model("llama_3_2_1b_instruct")
 def llama_3_2_1b_instruct(
     vocab_size: int = 128256, norm_eps: float = 1e-5, rope_theta: float = 500000.0, rope_traditional: bool = False
@@ -390,42 +427,6 @@ def phi35_mini_instruct(
     config = ModelConfig(
         hf=HFConfig(
             repo_id="microsoft/Phi-3.5-mini-instruct",
-        ),
-        converter=phi3_to_mlxllm,
-    )
-    return model, config
-
-
-@register_model("phi_4_14b")
-def phi4_14b(
-    vocab_size: int = 100352, norm_eps: float = 1e-5, rope_theta: float = 250000, rope_traditional: bool = False
-) -> Tuple[Transformer, ModelConfig]:
-    """Create a Phi4 14B Mini Instruct model.
-
-    Args:
-        vocab_size (int, optional): vocab size. Defaults to 100352.
-        norm_eps (float, optional): norm epsilon. Defaults to 1e-5.
-        rope_theta (float, optional): rope theta. Defaults to 250000.
-        rope_traditional (bool, optional): whether to use traditional rope. Defaults to False.
-
-    Returns:
-        Tuple[Transformer, ModelConfig]: model, config
-    """
-    model = Transformer(
-        dim=5120,
-        hidden_dim=17920,
-        vocab_size=vocab_size,
-        n_layers=40,
-        n_heads=40,
-        n_kv_heads=10,
-        norm_eps=norm_eps,
-        rope_theta=rope_theta,
-        rope_traditional=rope_traditional,
-    )
-
-    config = ModelConfig(
-        hf=HFConfig(
-            repo_id="microsoft/phi-4",
         ),
         converter=phi3_to_mlxllm,
     )

@@ -1,4 +1,5 @@
 from ._base import Prompt
+from .deepseek import DeepSeekLLaMA3Prompt
 from .gemma import GemmaPrompt
 from .hermes import HermesPrompt
 from .llama import LLaMA2Prompt, LLaMA3Prompt, TinyLLaMAPrompt
@@ -32,6 +33,7 @@ PROMPT_ENTRYPOINTS = {
     "smollm2_1.7B_instruct": HermesPrompt,
     "smollm2_360M_instruct": HermesPrompt,
     "smollm2_135M_instruct": HermesPrompt,
+    "deepseek_r1_distill_llama_8b": DeepSeekLLaMA3Prompt,
 }
 
 
