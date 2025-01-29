@@ -44,7 +44,6 @@ class LLMChat:
 
     Args:
         model_name (str): model name
-        prompt_family (str): prompt family
         chat_setup (ChatSetup): chat setup
         max_tokens (int, optional): max tokens. Defaults to 1024.
         temperature (float, optional): temperature. Defaults to 0.1.
@@ -56,7 +55,6 @@ class LLMChat:
     def __init__(
         self,
         model_name: str,
-        prompt_family: str,
         chat_setup: ChatSetup,
         max_tokens: int = 1024,
         temperature: float = 0.1,
@@ -66,7 +64,7 @@ class LLMChat:
     ) -> None:
         self.model = create_model(model_name)
         self.tokenizer = create_tokenizer(model_name)
-        self.prompt = create_prompt(prompt_family, system=chat_setup.system)
+        self.prompt = create_prompt(model_name=model_name, system=chat_setup.system)
         self.session = chat_setup.session()
         self.max_tokens = max_tokens
         self.temperature = temperature
